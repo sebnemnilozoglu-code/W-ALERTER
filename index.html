@@ -3,518 +3,2523 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>W-ALERTER v4.4 | Profesyonel Navigasyon & Balina Koruma</title>
+    <title>W-ALERTER v6.1.17 | Day & Night Ops</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
-        .map-container { height: 550px; width: 100%; border-radius: 2rem; z-index: 1; }
-        .glass-panel { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); border: 1px solid rgba(226, 232, 240, 0.8); }
-        .tab-active { color: #2563eb; border-bottom: 3px solid #2563eb; }
-        .custom-shadow { box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1); }
-        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .gradient-text { background: linear-gradient(135deg, #1e40af, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .nav-card:hover { transform: translateY(-5px); transition: all 0.3s ease; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        :root {
+            --primary: #2563eb;
+            --bg-dark: #020617;
+            --glass: rgba(15, 23, 42, 0.9);
+            --glass-intense: rgba(15, 23, 42, 0.98);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            color: #f1f5f9;
+        }
+
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            border-radius: 2rem;
+        }
+
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+        }
+
+        .leaflet-container {
+            background-color: #0f172a !important;
+            border-radius: 2.5rem;
+            z-index: 1;
+        }
+
+        .leaflet-tile-container {
+            filter: saturate(1.1) brightness(1.0) contrast(1.1);
+        }
+
+        .tab-active {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 0 35px rgba(37, 99, 235, 0.4);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #60a5fa, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+
+        .leaflet-interactive {
+            filter: drop-shadow(0 0 10px var(--primary));
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        input, select {
+            background: #020617 !important;
+            border: 1px solid #1e293b !important;
+            transition: all 0.3s ease;
+        }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen">
+<body class="min-h-screen flex flex-col">
 
-    <!-- Navigasyon Çubuğu -->
-    <nav class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-[2000]">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex justify-between items-center h-20">
-                <div class="flex items-center">
-                    <div>
-                        <span class="font-black text-3xl tracking-tighter block leading-none text-slate-900">W-ALERTER</span>
-                        <span class="text-[12px] font-bold text-blue-600 uppercase tracking-[0.3em] mt-1 block">Maritime Safety v4.4</span>
-                    </div>
+    <!-- Navigasyon Barı -->
+    <nav class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-[2000] p-4 text-white">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="bg-blue-600 p-2.5 rounded-2xl shadow-xl">
+                    <i data-lucide="whale" class="w-6 h-6 text-white"></i>
                 </div>
-                <div class="hidden md:flex gap-10 h-full">
-                    <button onclick="switchTab('about')" id="tab-about" class="tab-btn h-full px-2 text-sm font-bold text-slate-500 hover:text-blue-700 transition-all tab-active uppercase tracking-widest">Sistem Rehberi</button>
-                    <button onclick="switchTab('analysis')" id="tab-analysis" class="tab-btn h-full px-2 text-sm font-bold text-slate-500 hover:text-blue-700 transition-all uppercase tracking-widest">Bölgesel Analiz</button>
-                    <button onclick="switchTab('route')" id="tab-route" class="tab-btn h-full px-2 text-sm font-bold text-slate-500 hover:text-blue-700 transition-all uppercase tracking-widest">Akıllı Rota & Navigasyon</button>
+                <div>
+                    <h1 class="text-xl font-black tracking-tighter uppercase">W-ALERTER</h1>
+                    <span class="text-blue-500 text-[10px] font-bold tracking-widest uppercase">Day & Night Ops v6.1.17</span>
                 </div>
-                <div class="flex items-center gap-3 text-slate-400">
-                    <i data-lucide="clock" class="w-4 h-4"></i>
-                    <span id="currentTime" class="text-[10px] font-bold">--:--</span>
-                </div>
+            </div>
+            <div class="flex bg-slate-900 border border-slate-800 p-1.5 rounded-2xl">
+                <button onclick="switchTab('home')" id="btn-home" class="tab-btn px-6 py-2.5 rounded-xl transition-all text-slate-400 font-bold text-xs uppercase">Sistem Rehberi</button>
+                <button onclick="switchTab('control')" id="btn-control" class="tab-btn px-6 py-2.5 rounded-xl transition-all text-slate-400 font-bold text-xs uppercase">Navigasyon</button>
+                <button onclick="switchTab('history')" id="btn-history" class="tab-btn px-6 py-2.5 rounded-xl transition-all text-slate-400 font-bold text-xs uppercase">Sefer Arşivi</button>
             </div>
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto px-4 py-10">
-        
-        <!-- SEKME 1: HAKKIMIZDA / SİSTEM REHBERİ -->
-        <section id="content-about" class="animate-in fade-in duration-700">
-            <div class="space-y-24">
-                <!-- Hero Section -->
-                <div class="grid lg:grid-cols-2 gap-16 items-center">
-                    <div class="space-y-8">
-                        <div class="inline-block px-4 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-black uppercase tracking-widest">Antarktika Koruma Programı</div>
-                        <h2 class="text-6xl font-black text-slate-900 leading-[1.1]">Okyanusun <span class="gradient-text">Devlerini</span> Teknoloji ile Koruyun.</h2>
-                        <p class="text-slate-500 text-xl leading-relaxed font-medium">W-ALERTER, Horseshoe Adası koordinatlarında 23 yıllık NASA MODIS-Aqua uydu verilerini yapay zeka ile harmanlayan profesyonel bir okyanus izleme platformudur.</p>
-                        
-                        <!-- Vizyon & Misyon Bloğu -->
-                        <div class="grid sm:grid-cols-2 gap-6 pt-6 border-t border-slate-200">
-                            <div>
-                                <h4 class="font-black text-blue-600 text-xs uppercase tracking-widest mb-2 flex items-center gap-2">
-                                    <i data-lucide="target" class="w-3 h-3"></i> Misyonumuz
-                                </h4>
-                                <p class="text-xs text-slate-500 leading-relaxed font-semibold">İleri uydu teknolojilerini kullanarak denizcilik faaliyetlerinin okyanus ekosistemi üzerindeki etkisini minimize etmek ve balina popülasyonlarını korumak.</p>
-                            </div>
-                            <div>
-                                <h4 class="font-black text-purple-600 text-xs uppercase tracking-widest mb-2 flex items-center gap-2">
-                                    <i data-lucide="eye" class="w-3 h-3"></i> Vizyonumuz
-                                </h4>
-                                <p class="text-xs text-slate-500 leading-relaxed font-semibold">Yapay zeka destekli navigasyon çözümlerimizle küresel denizcilikte sürdürülebilirlik ve güvenlik standartlarını yeniden tanımlamak.</p>
-                            </div>
-                        </div>
+    <!-- Bildirim -->
+    <div id="notification" class="fixed top-24 right-6 bg-blue-600 text-white px-6 py-4 rounded-2xl shadow-2xl z-[3000] hidden flex items-center gap-3 animate-bounce border border-blue-400/30">
+        <i data-lucide="shield-check" class="w-5 h-5 text-white"></i>
+        <span id="notif-text" class="font-bold text-sm tracking-tight"></span>
+    </div>
 
-                        <div class="flex flex-wrap gap-5">
-                            <button onclick="switchTab('route')" class="bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-2xl flex items-center gap-3">
-                                <i data-lucide="navigation-2" class="w-5 h-5"></i> Rota Planlamaya Başla
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="relative flex items-center justify-center lg:justify-end">
-                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-blue-600/5 rounded-full blur-3xl"></div>
-                        
-                        <!-- Sadeleştirilmiş ve Baya Küçültülmüş Görsel -->
-                        <div class="relative group">
-                            <div class="absolute -inset-2 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-full opacity-20 blur-xl group-hover:opacity-40 transition-opacity"></div>
-                            <img src="https://images.unsplash.com/photo-1568430462989-44163eb1752f?auto=format&fit=crop&q=80&w=600" 
-                                 alt="Balina Koruma" 
-                                 class="relative rounded-full shadow-2xl object-cover w-32 h-32 lg:w-48 lg:h-48 border-4 border-white">
-                            <div class="absolute -bottom-2 -right-2 bg-white p-3 rounded-2xl shadow-lg border border-slate-100 hidden sm:block">
-                                <i data-lucide="shield-check" class="w-5 h-5 text-blue-600"></i>
-                            </div>
-                        </div>
-                    </div>
+    <!-- Detay Modalı -->
+    <div id="detail-modal" class="fixed inset-0 z-[4000] hidden flex items-center justify-center p-6 modal-overlay">
+        <div class="glass-card bg-slate-950/95 w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar p-10 border-slate-700 shadow-3xl text-white">
+            <div class="flex justify-between items-start mb-8 border-b border-slate-800 pb-6 text-white">
+                <div>
+                    <p id="modal-ref" class="text-blue-500 font-black text-xs uppercase tracking-widest mb-1"></p>
+                    <h2 class="text-4xl font-black tracking-tighter uppercase">Sefer Detay Analizi</h2>
                 </div>
+                <button onclick="closeModal()" class="bg-slate-900 hover:bg-slate-800 p-3 rounded-2xl transition-all text-white">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            
+            <div id="modal-content" class="grid md:grid-cols-2 gap-10">
+                <!-- Veriler buraya JS ile dolacak -->
+            </div>
+            
+            <div class="mt-10 pt-8 border-t border-slate-800 flex justify-end">
+                <button onclick="closeModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all">Kapat</button>
+            </div>
+        </div>
+    </div>
 
-                <!-- İstatistik / Özellik Kartları -->
-                <div class="grid md:grid-cols-4 gap-8">
-                    <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 nav-card text-center text-slate-800">
-                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-6 mx-auto"><i data-lucide="satellite" class="w-6 h-6"></i></div>
-                        <h3 class="text-lg font-extrabold mb-2">Uydu Verisi</h3>
-                        <p class="text-xs text-slate-400">NASA MODIS-Aqua 23 yıllık arşiv desteği.</p>
-                    </div>
-                    <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 nav-card text-center text-slate-800">
-                        <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-6 mx-auto"><i data-lucide="leaf" class="w-6 h-6"></i></div>
-                        <h3 class="text-lg font-extrabold mb-2">Yakıt Tasarrufu</h3>
-                        <p class="text-xs text-slate-400">Hız optimizasyonu ile mil başı 2.5L kazanç.</p>
-                    </div>
-                    <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 nav-card text-center text-slate-800">
-                        <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-6 mx-auto"><i data-lucide="navigation" class="w-6 h-6"></i></div>
-                        <h3 class="text-lg font-extrabold mb-2">Akıllı Rota</h3>
-                        <p class="text-xs text-slate-400">Karadan kaçınan dinamik rota planlama.</p>
-                    </div>
-                    <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 nav-card text-center text-slate-800">
-                        <div class="w-12 h-12 bg-red-50 text-red-600 rounded-xl flex items-center justify-center mb-6 mx-auto"><i data-lucide="shield" class="w-6 h-6"></i></div>
-                        <h3 class="text-lg font-extrabold mb-2">Canlı Koruma</h3>
-                        <p class="text-xs text-slate-400">Gerçek zamanlı erken uyarı sinyalleri.</p>
-                    </div>
-                </div>
+    <main class="flex-1 max-w-7xl mx-auto w-full p-6 md:p-10 text-white">
 
-                <!-- 4 Adımda Kullanım Rehberi -->
-                <div class="bg-slate-900 rounded-[4rem] p-12 md:p-20 text-white relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 blur-[120px]"></div>
-                    <div class="relative z-10 text-center mb-16">
-                        <h3 class="text-4xl font-black mb-4">Sistem Nasıl Kullanılır?</h3>
-                        <p class="text-slate-400 max-w-2xl mx-auto font-medium">W-ALERTER platformunu en verimli şekilde kullanmak için aşağıdaki 4 adımlı protokolü takip edin.</p>
+        <!-- SEKME 1: REHBER -->
+        <div id="tab-home" class="tab-content space-y-24 py-10 animate-in fade-in duration-700">
+            <div class="grid lg:grid-cols-2 gap-20 items-center">
+                <div class="space-y-10">
+                    <div class="inline-block px-5 py-2 bg-blue-500/10 border border-blue-500/30 text-blue-400 rounded-full text-[10px] font-black uppercase tracking-[0.3em]">
+                        TÜBİTAK 2204-C ARAŞTIRMA PROJESİ
                     </div>
+                    <h2 class="text-7xl font-black leading-[0.95] tracking-tighter">
+                        Okyanusun <span class="gradient-text italic">Geleceği</span> Artık Sizin Elinizde.
+                    </h2>
+                    <p class="text-slate-400 text-xl leading-relaxed font-medium max-w-lg">
+                        NASA MODIS-Aqua uydu arşiviyle desteklenen, Antarktika ekosistemini koruyan ve 24 saat kesintisiz güvenli seyir sunan ileri düzey navigasyon platformu.
+                    </p>
                     
-                    <div class="grid md:grid-cols-4 gap-12 relative z-10">
-                        <div class="space-y-6 text-center group">
-                            <div class="w-16 h-16 bg-blue-600 rounded-3xl flex items-center justify-center font-black text-2xl shadow-lg mx-auto group-hover:rotate-6 transition-all">1</div>
-                            <h4 class="font-bold text-lg">Konum Belirleyin</h4>
-                            <p class="text-sm text-slate-400 leading-relaxed">Bölgesel Analiz sekmesine gidin ve geminizin mevcut veya hedef koordinatlarını girin.</p>
+                    <div class="grid grid-cols-3 gap-4 text-white">
+                        <div class="p-5 bg-slate-900/50 rounded-3xl border border-slate-800 text-white">
+                            <h4 class="text-blue-500 font-black text-[10px] uppercase mb-1">Pervane Yasası</h4>
+                            <p class="text-[9px] text-slate-500 italic leading-tight">Güç, hızın küpüyle doğru orantılıdır.</p>
                         </div>
-                        <div class="space-y-6 text-center group">
-                            <div class="w-16 h-16 bg-blue-700 rounded-3xl flex items-center justify-center font-black text-2xl shadow-lg mx-auto group-hover:rotate-6 transition-all">2</div>
-                            <h4 class="font-bold text-lg">Verileri Girin</h4>
-                            <p class="text-sm text-slate-400 leading-relaxed">Haftalık klorofil-a (mg/m³) değerlerini girerek balina beslenme yoğunluğunu analiz edin.</p>
+                        <div class="p-5 bg-slate-900/50 rounded-3xl border border-slate-800 text-white">
+                            <h4 class="text-purple-500 font-black text-[10px] uppercase mb-1">Ross Modeli</h4>
+                            <p class="text-[9px] text-slate-500 italic leading-tight text-white">Gelişmiş akustik gürültü denetimi.</p>
                         </div>
-                        <div class="space-y-6 text-center group">
-                            <div class="w-16 h-16 bg-blue-800 rounded-3xl flex items-center justify-center font-black text-2xl shadow-lg mx-auto group-hover:rotate-6 transition-all">3</div>
-                            <h4 class="font-bold text-lg">Rotayı Çizin</h4>
-                            <p class="text-sm text-slate-400 leading-relaxed">Akıllı Rota sekmesinde waypointleri belirleyin ve riskli bölgelerden kaçınan rotayı oluşturun.</p>
-                        </div>
-                        <div class="space-y-6 text-center group">
-                            <div class="w-16 h-16 bg-blue-900 rounded-3xl flex items-center justify-center font-black text-2xl shadow-lg mx-auto group-hover:rotate-6 transition-all">4</div>
-                            <h4 class="font-bold text-lg">Hızı Optimize Edin</h4>
-                            <p class="text-sm text-slate-400 leading-relaxed">Sistemin önerdiği hız limitlerine uyarak hem yakıt tasarrufu sağlayın hem de canlıları koruyun.</p>
+                        <div class="p-5 bg-slate-900/50 rounded-3xl border border-slate-800 text-white">
+                            <h4 class="text-emerald-500 font-black text-[10px] uppercase mb-1">Night Vision+</h4>
+                            <p class="text-[9px] text-slate-500 italic leading-tight text-white">Gece seyri için dinamik risk denetimi.</p>
                         </div>
                     </div>
+
+                    <button onclick="switchTab('control')" class="bg-blue-600 hover:bg-blue-500 text-white px-10 py-5 rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-2xl transition-all active:scale-95">
+                        Rota Planlamaya Başla
+                    </button>
+                </div>
+                
+                <div class="relative group">
+                    <div class="absolute -inset-10 bg-blue-600/10 rounded-full blur-[100px] z-[-1]"></div>
+                    <img src="https://images.unsplash.com/photo-1568430462989-44163eb1752f?auto=format&fit=crop&q=80&w=1000" 
+                         alt="Antarktika Balina Koruma" class="relative rounded-[4rem] border-8 border-slate-900 shadow-2xl w-full object-cover aspect-[4/3]">
                 </div>
             </div>
-        </section>
+        </div>
 
-        <!-- SEKME 2: BÖLGESEL ANALİZ -->
-        <section id="content-analysis" class="hidden animate-in fade-in duration-500">
+        <!-- SEKME 2: NAVİGASYON -->
+        <div id="tab-control" class="tab-content hidden space-y-8 animate-in fade-in duration-500">
             <div class="grid lg:grid-cols-12 gap-8">
-                <div class="lg:col-span-4 space-y-6">
-                    <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-200">
-                        <h2 class="text-xl font-black mb-8 flex items-center gap-3 text-slate-800">
-                            <i data-lucide="crosshair" class="w-6 h-6 text-blue-600"></i> Mevcut Konum Analizi
-                        </h2>
-                        <div class="space-y-5">
+                
+                <div class="lg:col-span-4 space-y-6 text-white">
+                    <div class="glass-card p-8 space-y-6 border-slate-800 text-white">
+                        <h3 class="font-black text-xs uppercase tracking-widest text-blue-500 border-b border-slate-800 pb-4">Seyir Verileri</h3>
+                        
+                        <div class="grid grid-cols-2 gap-4 text-white">
                             <div>
-                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Gözlem Periyodu</label>
-                                <select id="analysisMonth" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:ring-2 focus:ring-blue-500 outline-none font-bold text-sm text-slate-700">
+                                <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Seyir Ayı</label>
+                                <select id="in-month" onchange="updateSystem()" class="w-full p-4 rounded-2xl font-bold text-xs text-white">
                                     <option value="Ekim">Ekim</option><option value="Kasım">Kasım</option><option value="Aralık">Aralık</option><option value="Ocak">Ocak</option>
                                 </select>
                             </div>
-                            <div class="grid grid-cols-2 gap-4 text-slate-700">
-                                <div>
-                                    <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Enlem (LAT)</label>
-                                    <input type="number" id="analysisLat" value="-64.77" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 font-mono text-sm">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Boylam (LON)</label>
-                                    <input type="number" id="analysisLon" value="-64.05" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 font-mono text-sm">
-                                </div>
-                            </div>
                             <div>
-                                <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Klorofil-a (mg/m³)</label>
-                                <input type="number" id="analysisChlo" placeholder="0.5500" step="0.0001" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 font-mono text-sm text-slate-700">
-                            </div>
-                            <button onclick="runPointAnalysis()" class="w-full bg-blue-700 text-white font-black py-5 rounded-2xl hover:bg-blue-800 transition-all shadow-xl shadow-blue-100 flex items-center justify-center gap-3 uppercase tracking-widest">
-                                <i data-lucide="zap" class="w-5 h-5"></i> Analizi Başlat
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div id="pointResultCard" class="hidden">
-                        <div id="pointResultColor" class="p-8 rounded-[2.5rem] text-white custom-shadow relative overflow-hidden transition-all duration-500">
-                            <div class="relative z-10">
-                                <div class="flex justify-between items-start mb-6">
-                                    <div><p class="text-[10px] font-black opacity-70 mb-1 tracking-widest uppercase">STATÜ</p><h3 id="pointResultTitle" class="text-3xl font-black uppercase tracking-tight text-white">NORMAL</h3></div>
-                                    <div id="pointResultIcon" class="p-4 bg-white/20 rounded-2xl"></div>
-                                </div>
-                                <div class="bg-black/20 p-6 rounded-3xl border border-white/10 backdrop-blur-md text-center">
-                                    <p class="text-[10px] font-black uppercase opacity-70 mb-2 tracking-widest">Balina Geçiş Olasılığı</p>
-                                    <p id="whalePassRate" class="text-6xl font-black tracking-tighter">0%</p>
-                                </div>
-                                <p id="pointResultDesc" class="text-sm font-semibold opacity-90 leading-relaxed"></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="lg:col-span-8 text-slate-800">
-                    <div class="bg-white p-3 rounded-[3rem] shadow-sm border border-slate-200 overflow-hidden relative">
-                        <div id="analysisMap" class="map-container"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- SEKME 3: AKILLI ROTA -->
-        <section id="content-route" class="hidden animate-in fade-in duration-500">
-            <div class="grid lg:grid-cols-12 gap-8 text-slate-800">
-                <div class="lg:col-span-4 space-y-6">
-                    <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-200">
-                        <div class="flex items-center justify-between mb-8">
-                            <h2 class="text-xl font-black flex items-center gap-3">
-                                <i data-lucide="navigation" class="w-6 h-6 text-blue-600"></i> Akıllı Rota Planlayıcı
-                            </h2>
-                            <span class="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-1 rounded uppercase">Beta</span>
-                        </div>
-                        <div class="space-y-5">
-                            <div>
-                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Sefer Ayı</label>
-                                <select id="routeMonth" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:ring-2 focus:ring-blue-500 outline-none font-bold text-sm text-slate-700">
-                                    <option value="Ekim">Ekim</option><option value="Kasım">Kasım</option><option value="Aralık">Aralık</option><option value="Ocak">Ocak</option>
+                                <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Gündüz/Gece</label>
+                                <select id="in-time" onchange="updateSystem()" class="w-full p-4 rounded-2xl font-bold text-xs text-white">
+                                    <option value="Gündüz">Gündüz</option>
+                                    <option value="Gece">Gece (Riskli)</option>
                                 </select>
                             </div>
-                            <div class="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 space-y-4">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i data-lucide="map-pin" class="w-4 h-4 text-blue-600 text-slate-800"></i>
-                                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Waypoint Ekle</p>
-                                </div>
-                                <div class="grid grid-cols-2 gap-3 text-slate-700">
-                                    <input type="number" id="stopLat" placeholder="LAT" step="0.01" class="bg-white border border-slate-200 rounded-xl p-3 text-sm font-mono">
-                                    <input type="number" id="stopLon" placeholder="LON" step="0.01" class="bg-white border border-slate-200 rounded-xl p-3 text-sm font-mono">
-                                </div>
-                                <input type="number" id="stopChlo" placeholder="Sensör Klorofil (mg/m³)" step="0.0001" class="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm font-mono text-slate-700">
-                                <button onclick="addRoutePoint()" class="w-full bg-slate-900 text-white font-black py-4 rounded-xl text-xs hover:bg-blue-700 transition-all flex items-center justify-center gap-3 uppercase tracking-widest">
-                                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Listeye Ekle
-                                </button>
-                            </div>
-                            
-                            <div id="routeList" class="max-h-56 overflow-y-auto space-y-3 pr-2 scrollbar-hide"></div>
-
-                            <button onclick="calculateFullRoute()" id="calcRouteBtn" class="w-full bg-blue-700 text-white font-black py-5 rounded-2xl hover:bg-blue-800 transition-all shadow-xl hidden uppercase tracking-widest">
-                                ROTAYI ANALİZ ET VE ÇİZ
-                            </button>
                         </div>
-                    </div>
 
-                    <div id="routeSummary" class="hidden animate-in slide-in-from-bottom-5 duration-500 space-y-4">
-                        <div class="bg-white p-8 rounded-[2.5rem] shadow-2xl border-t-4 border-blue-600 text-slate-800 relative overflow-hidden">
-                            <h3 class="font-black text-lg mb-6 flex items-center gap-3 uppercase tracking-tighter">📊 Navigasyon Özeti</h3>
-                            <div class="space-y-4 font-bold text-sm">
-                                <div class="flex justify-between items-center py-3 border-b border-slate-50">
-                                    <span class="text-slate-400">Toplam Mesafe:</span>
-                                    <span id="totalNM" class="text-slate-900 font-mono">0 NM</span>
-                                </div>
-                                <div class="flex justify-between items-center py-3 border-b border-slate-50 text-red-600">
-                                    <span>Riskli Bölge Mesafesi:</span>
-                                    <span id="riskNM" class="font-mono">0 NM</span>
-                                </div>
-                                <div class="flex justify-between items-center py-3 text-emerald-600 bg-emerald-50 px-4 rounded-xl border border-emerald-100">
-                                    <span>Toplam Yakıt Tasarrufu:</span>
-                                    <span id="fuelSaving" class="text-lg font-black font-mono">0 L</span>
-                                </div>
+                        <div class="grid grid-cols-2 gap-4 text-white">
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Yakıt</label>
+                                <select id="in-fuel" onchange="updateSystem()" class="w-full p-4 rounded-2xl font-bold text-xs text-white">
+                                    <option value="Dizel">Dizel</option><option value="LNG">LNG</option><option value="Hidrojen">Hidrojen</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Klorofil</label>
+                                <input type="number" id="in-chl" value="0.55" step="0.01" oninput="updateSystem()" class="w-full p-4 rounded-2xl font-bold text-xs text-white">
                             </div>
                         </div>
 
-                        <div class="bg-slate-900 p-8 rounded-[2.5rem] shadow-2xl text-white relative overflow-hidden text-slate-800">
-                            <div class="absolute -right-10 -bottom-10 opacity-10">
-                                <i data-lucide="gauge" class="w-32 h-32"></i>
+                        <div class="grid grid-cols-2 gap-4 text-white">
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">SST (°C)</label>
+                                <input type="number" id="in-sst" value="2.5" step="0.1" oninput="updateSystem()" class="w-full p-4 rounded-2xl font-bold text-xs text-white">
                             </div>
-                            <div class="relative z-10 text-white">
-                                <div class="flex items-center gap-2 mb-6 border-b border-white/10 pb-4">
-                                    <i data-lucide="zap" class="w-5 h-5 text-blue-400"></i>
-                                    <h3 class="font-black text-sm uppercase tracking-widest">Navigasyon & Hız Analizi</h3>
-                                </div>
-                                <div class="grid grid-cols-2 gap-6">
-                                    <div>
-                                        <p class="text-[10px] opacity-60 font-bold uppercase tracking-widest mb-1">Hedef Güvenli Hız</p>
-                                        <p class="text-2xl font-black tracking-tight">10 Knot</p>
-                                    </div>
-                                    <div class="text-right">
-                                        <p class="text-[10px] opacity-60 font-bold uppercase tracking-widest mb-1">Yavaşlama Oranı</p>
-                                        <p class="text-2xl font-black tracking-tight text-blue-400">-%28.5</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-[10px] opacity-60 font-bold uppercase tracking-widest mb-1">Birim Tasarruf</p>
-                                        <p class="text-xl font-black tracking-tight text-emerald-400">2.5 L / NM</p>
-                                    </div>
-                                    <div class="text-right">
-                                        <p class="text-[10px] opacity-60 font-bold uppercase tracking-widest mb-1">Protokol Durumu</p>
-                                        <p class="text-xl font-black tracking-tight opacity-90">AKTİF</p>
-                                    </div>
-                                </div>
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Gemi Tonajı</label>
+                                <input type="number" id="in-weight" value="12000" oninput="updateSystem()" class="w-full p-4 rounded-2xl font-bold text-xs text-white">
                             </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 text-white">
+                            <input type="number" id="in-lat" placeholder="LAT" class="p-4 rounded-2xl font-bold text-xs text-white">
+                            <input type="number" id="in-lon" placeholder="LON" class="p-4 rounded-2xl font-bold text-xs text-white">
+                        </div>
+
+                        <button onclick="addWaypoint()" class="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-2xl font-black text-[10px] uppercase text-white shadow-xl">Waypoint Ekle</button>
+                        
+                        <div id="wp-list" class="max-h-32 overflow-y-auto space-y-2 custom-scrollbar text-white"></div>
+
+                        <div class="flex gap-2 border-t border-slate-800 pt-5 text-white">
+                            <button onclick="saveVoyage()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 py-4 rounded-2xl font-black text-[10px] uppercase text-white">Analizi Kaydet</button>
+                            <button onclick="clearEverything()" class="flex-1 bg-slate-800 hover:bg-red-900/30 py-4 rounded-2xl font-black text-[10px] uppercase text-white">Sıfırla</button>
                         </div>
                     </div>
                 </div>
 
-                <div class="lg:col-span-8">
-                    <div class="bg-white p-3 rounded-[3rem] shadow-sm border border-slate-200 overflow-hidden relative">
-                        <div id="routeMap" class="map-container"></div>
+                <div class="lg:col-span-8 space-y-8 text-white">
+                    <div class="grid grid-cols-4 gap-4 text-white">
+                        <div id="card-prob" class="glass-card p-6 text-center border-slate-800">
+                            <span class="text-[8px] font-black text-slate-500 uppercase block mb-1 tracking-widest text-white">Risk</span>
+                            <div id="out-prob" class="text-3xl font-black tracking-tighter text-white">--</div>
+                        </div>
+                        <div class="glass-card p-6 text-center bg-blue-500/5 text-white">
+                            <span class="text-[8px] font-black text-blue-500/60 uppercase block mb-1 tracking-widest text-white">Hız</span>
+                            <div id="out-speed" class="text-3xl font-black text-blue-400 tracking-tighter text-white">--</div>
+                        </div>
+                        <div class="glass-card p-6 text-center bg-green-500/5 text-white">
+                            <span class="text-[8px] font-black text-green-500/60 uppercase block mb-1 tracking-widest text-white">Tasarruf</span>
+                            <div id="out-savings" class="text-3xl font-black text-green-400 tracking-tighter text-white">--</div>
+                        </div>
+                        <div class="glass-card p-6 text-center bg-orange-500/5 text-white">
+                            <span class="text-[8px] font-black text-orange-500/60 uppercase block mb-1 tracking-widest text-white">Gürültü</span>
+                            <div id="out-noise" class="text-3xl font-black text-orange-400 tracking-tighter text-white">--</div>
+                        </div>
+                    </div>
+
+                    <div class="h-[520px] glass-card overflow-hidden relative shadow-2xl border-slate-800">
+                        <div id="map" class="h-full w-full"></div>
+                        <div class="absolute bottom-6 left-6 z-[1000] pointer-events-none">
+                            <div class="glass-card bg-slate-950/90 p-4 border-slate-700/50 shadow-2xl">
+                                <div id="time-badge" class="flex items-center gap-2 mb-1">
+                                    <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                                    <span id="time-label" class="text-[10px] font-black text-blue-500 uppercase tracking-widest">Gündüz Operasyonu</span>
+                                </div>
+                                <p class="text-[9px] text-slate-500 leading-tight font-bold">Absolute Blockade v15: Tüm buzullar yasaklı alandır.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-6 text-white">
+                        <div class="glass-card p-8 flex justify-between items-center text-white text-white">
+                            <div>
+                                <span class="text-[10px] font-black text-slate-500 uppercase mb-1 block">CO2</span>
+                                <div id="out-co2" class="text-3xl font-black text-blue-400">0.0 kg</div>
+                            </div>
+                            <i data-lucide="wind" class="text-blue-500/20 w-10 h-10"></i>
+                        </div>
+                        <div class="glass-card p-8 flex justify-between items-center text-white text-white">
+                            <div>
+                                <span class="text-[10px] font-black text-slate-500 uppercase mb-1 block text-white">Mesafe</span>
+                                <div id="out-dist" class="text-3xl font-black text-white font-black text-white">0.0 Nm</div>
+                            </div>
+                            <i data-lucide="ruler" class="text-slate-500/20 w-10 h-10"></i>
+                        </div>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
+
+        <div id="tab-history" class="tab-content hidden py-10 space-y-10 animate-in fade-in duration-500 text-white">
+            <div class="flex justify-between items-end border-b border-slate-800 pb-8 text-white">
+                <h2 class="text-6xl font-black uppercase text-white">Sefer Analizleri</h2>
+                <p class="text-slate-500 font-bold uppercase text-xs tracking-widest mb-2 text-white">Kayıtlı Tüm Operasyonel Veriler</p>
+            </div>
+            <div id="hist-list" class="grid gap-6 text-white">
+                <!-- Arşiv kartları buraya dolacak -->
+            </div>
+        </div>
 
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // --- TEMEL VERİLER ---
         const ARSIV = { "Ekim": 0.4091, "Kasım": 0.3253, "Aralık": 0.3481, "Ocak": 0.3303 };
-        let maps = { analysis: null, route: null };
-        let markers = { analysis: null, routeMarkers: [], routePath: null };
-        let routeData = [];
+        let map, routeLine, markers = [], waypoints = [], historyData = [], liveChart;
 
-        // --- SEKME GEÇİŞLERİ ---
-        function switchTab(tabId) {
-            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-active'));
-            
-            document.getElementById(`content-${tabId}`).classList.remove('hidden');
-            document.getElementById(`tab-${tabId}`).classList.add('tab-active');
-            
-            if (tabId === 'analysis' && maps.analysis) setTimeout(() => maps.analysis.invalidateSize(), 100);
-            if (tabId === 'route' && maps.route) setTimeout(() => maps.route.invalidateSize(), 100);
-        }
+        // --- ABSOLUTE BLOCKADE MASK ---
+        const LAND_ZONES = [
+            { minLat: -76.0, maxLat: -68.4, minLon: -78.0, maxLon: -67.8 }, 
+            { minLat: -65.5, maxLat: -62.0, minLon: -63.0, maxLon: -54.0 }, 
+            { minLat: -68.0, maxLat: -65.5, minLon: -66.0, maxLon: -56.0 }, 
+            { minLat: -72.0, maxLat: -68.0, minLon: -68.5, maxLon: -60.0 }, 
+            { minLat: -75.0, maxLat: -72.0, minLon: -70.0, maxLon: -62.0 },
+            { minLat: -68.4, maxLat: -66.5, minLon: -71.5, maxLon: -67.5 },
+            { minLat: -72.0, maxLat: -69.0, minLon: -78.0, maxLon: -73.0 },
+            { minLat: -90.0, maxLat: -74.0, minLon: -180, maxLon: 180 },
+            { minLat: -56.0, maxLat: 80, minLon: -180, maxLon: -34 }
+        ];
 
-        // Haversine Formülü (Deniz Mili)
-        function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 3440; // NM
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
-        }
-
-        // --- SAAT GÜNCELLEME ---
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('currentTime').innerText = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-        }
-
-        // --- BAŞLATMA ---
-        function init() {
-            updateClock();
-            setInterval(updateClock, 10000);
-
-            maps.analysis = L.map('analysisMap', { zoomControl: false }).setView([-64.8, -63.9], 6);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(maps.analysis);
-            L.control.zoom({ position: 'bottomright' }).addTo(maps.analysis);
-
-            maps.route = L.map('routeMap', { zoomControl: false }).setView([-64.8, -63.9], 6);
-            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}').addTo(maps.route);
-            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Reference/MapServer/tile/{z}/{y}/{x}').addTo(maps.route);
-            L.control.zoom({ position: 'bottomright' }).addTo(maps.route);
-            
-            lucide.createIcons();
-        }
-
-        // --- BÖLGESEL ANALİZ MANTIĞI ---
-        function runPointAnalysis() {
-            const ay = document.getElementById('analysisMonth').value;
-            const lat = parseFloat(document.getElementById('analysisLat').value);
-            const lon = parseFloat(document.getElementById('analysisLon').value);
-            const klor = parseFloat(document.getElementById('analysisChlo').value);
-
-            if (isNaN(klor)) return;
-
-            const referans = ARSIV[ay];
-            const oran = klor / referans;
-            
-            let gecisOrani = Math.min(oran * 50, 99.8).toFixed(1);
-            if (oran < 0.5) gecisOrani = (oran * 18).toFixed(1);
-
-            const resCard = document.getElementById('pointResultCard');
-            const resColor = document.getElementById('pointResultColor');
-            const resTitle = document.getElementById('pointResultTitle');
-            const resDesc = document.getElementById('pointResultDesc');
-            const resIcon = document.getElementById('pointResultIcon');
-            const whaleRateDisplay = document.getElementById('whalePassRate');
-
-            resCard.classList.remove('hidden');
-            whaleRateDisplay.innerText = gecisOrani + "%";
-
-            if (oran >= 1.8) {
-                resTitle.innerText = "KRİTİK RİSK";
-                resDesc.innerText = "Aşırı besin kümelenmesi! Balina sürüsü olasılığı ekstrem seviyededir. Bölgeyi Navigasyon sekmesinde rota bazlı analiz edin.";
-                resColor.className = "p-8 rounded-[2.5rem] text-white custom-shadow bg-gradient-to-br from-red-600 to-rose-700";
-                resIcon.innerHTML = `<i data-lucide="alert-octagon" class="w-8 h-8 text-white"></i>`;
-                updateMarker(lat, lon, '#e11d48');
-            } else if (oran >= 1.25) {
-                resTitle.innerText = "ORTA RİSK";
-                resDesc.innerText = "Besin yoğunluğu baz hattının üzerindedir. Aktif bir beslenme zonu oluşmuş olabilir. Gözcüleri uyarın.";
-                resColor.className = "p-8 rounded-[2.5rem] text-white custom-shadow bg-gradient-to-br from-orange-500 to-amber-600";
-                resIcon.innerHTML = `<i data-lucide="eye" class="w-8 h-8 text-white"></i>`;
-                updateMarker(lat, lon, '#f59e0b');
-            } else {
-                resTitle.innerText = "NORMAL SEYİR";
-                resDesc.innerText = "Veriler mevsim normallerinde. Deniz trafiği için standart Antarktika protokolü uygundur.";
-                resColor.className = "p-8 rounded-[2.5rem] text-white custom-shadow bg-gradient-to-br from-blue-600 to-indigo-700";
-                resIcon.innerHTML = `<i data-lucide="shield-check" class="w-8 h-8 text-white"></i>`;
-                updateMarker(lat, lon, '#2563eb');
+        function isLand(lat, lon) {
+            for (const z of LAND_ZONES) {
+                if (lat >= z.minLat && lat <= z.maxLat && lon >= z.minLon && lon <= z.maxLon) return true;
             }
+            return false;
+        }
+
+        // --- ROUTE ENGINE ---
+        function calculatePath(start, end, depth = 0) {
+            if (depth > 10) return [start, end];
+            const samples = 150;
+            let collision = null;
+            for (let i = 1; i < samples; i++) {
+                let t = i / samples;
+                let lat = start[0] + (end[0] - start[0]) * t;
+                let lon = start[1] + (end[1] - start[1]) * t;
+                if (isLand(lat, lon)) { collision = [lat, lon]; break; }
+            }
+            if (collision) {
+                let bestBypass = null;
+                let minExtension = Infinity;
+                for (let dist = 5.0; dist < 50; dist += 3.0) {
+                    for (let angle = 10; angle <= 170; angle += 10) {
+                        for (let dir of [1, -1]) {
+                            const rad = (angle * dir) * (Math.PI / 180);
+                            const dx = end[1] - start[1], dy = end[0] - start[0];
+                            const nx = dx * Math.cos(rad) - dy * Math.sin(rad);
+                            const ny = dx * Math.sin(rad) + dy * Math.cos(rad);
+                            const mag = Math.sqrt(nx*nx + ny*ny) || 1;
+                            let testLat = collision[0] + (ny/mag) * dist;
+                            let testLon = collision[1] + (nx/mag) * dist;
+                            if (!isLand(testLat, testLon)) {
+                                const totalDist = L.latLng(start).distanceTo([testLat, testLon]) + 
+                                                  L.latLng([testLat, testLon]).distanceTo(end);
+                                if (totalDist < minExtension) { minExtension = totalDist; bestBypass = [testLat, testLon]; }
+                            }
+                        }
+                    }
+                    if (bestBypass) break;
+                }
+                if (bestBypass) {
+                    const p1 = calculatePath(start, bestBypass, depth + 1);
+                    const p2 = calculatePath(bestBypass, end, depth + 1);
+                    return [...p1, ...p2.slice(1)];
+                }
+            }
+            return [start, end];
+        }
+
+        function straightenPath(points) {
+            if (points.length < 3) return points;
+            let result = [points[0]];
+            let curr = 0;
+            while (curr < points.length - 1) {
+                let furthest = curr + 1;
+                for (let check = curr + 2; check < points.length; check++) {
+                    if (isLineClear(points[curr], points[check])) furthest = check;
+                }
+                result.push(points[furthest]);
+                curr = furthest;
+            }
+            return result;
+        }
+
+        function isLineClear(p1, p2) {
+            const steps = 120;
+            for (let i = 1; i <= steps; i++) {
+                let t = i / steps;
+                if (isLand(p1[0] + (p2[0]-p1[0])*t, p1[1] + (p2[1]-p1[1])*t)) return false;
+            }
+            return true;
+        }
+
+        // --- MAP & UI ---
+        function initMap() {
+            if (map) return;
+            map = L.map('map', { 
+                center: [-64.8, -63.0], zoom: 5, zoomControl: false,
+                maxBounds: [[-90, -180], [-58, 0]], maxBoundsViscosity: 1.0
+            });
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+            map.on('click', (e) => {
+                if (isLand(e.latlng.lat, e.latlng.lng)) { showNotif("HATA: Bu bölge yasaklı buzul/kara alanıdır!"); return; }
+                document.getElementById('in-lat').value = e.latlng.lat.toFixed(4);
+                document.getElementById('in-lon').value = e.latlng.lng.toFixed(4);
+                addWaypoint();
+            });
+        }
+
+        function addWaypoint() {
+            const lat = parseFloat(document.getElementById('in-lat').value), lon = parseFloat(document.getElementById('in-lon').value);
+            if (isNaN(lat) || isNaN(lon) || isLand(lat, lon)) return;
+            waypoints.push([lat, lon]);
+            markers.push(L.circleMarker([lat, lon], { radius: 6, color: '#2563eb', weight: 3, fillColor: 'white', fillOpacity: 1 }).addTo(map));
+            updateRoute();
+        }
+
+        function updateRoute() {
+            if (waypoints.length < 2) return;
+            if (routeLine) map.removeLayer(routeLine);
+            let finalPoints = [];
+            for (let i = 0; i < waypoints.length - 1; i++) {
+                const seg = calculatePath(waypoints[i], waypoints[i+1]);
+                const smooth = straightenPath(seg);
+                finalPoints = finalPoints.concat(i === 0 ? smooth : smooth.slice(1));
+            }
+            routeLine = L.polyline(finalPoints, { color: '#3b82f6', weight: 5, opacity: 0.9, lineJoin: 'round', smoothFactor: 3.0 }).addTo(map);
+            map.fitBounds(routeLine.getBounds(), { padding: [80, 80] });
+            let d = 0;
+            for(let i=0; i<finalPoints.length-1; i++) d += L.latLng(finalPoints[i]).distanceTo(L.latLng(finalPoints[i+1])) / 1852;
+            document.getElementById('out-dist').innerText = d.toFixed(1) + " Nm";
+            updateSystem(); renderWPList();
+        }
+
+        function updateSystem() {
+            const getVal = (id) => { const el = document.getElementById(id); return el ? el.value : (id === 'in-sst' ? 2.5 : 0.5); };
+            const chl = getVal('in-chl'), sst = getVal('in-sst'), weight = getVal('in-weight'), fuel = getVal('in-fuel'), time = getVal('in-time');
+            const dist = parseFloat(document.getElementById('out-dist').innerText) || 0;
+            
+            // Risk Hesaplama: Gece faktörü eklendi
+            let probBase = (chl / 0.4) * 40 + (sst > 1 ? 40 : 10);
+            if (time === 'Gece') probBase += 20; // Gece seyri riski artırır
+            
+            const prob = Math.min(Math.max(probBase, 5), 98.5);
+            const speed = prob > 75 ? 8.2 : (prob > 45 ? 11.2 : 19.5);
+            const savings = (1 - Math.pow(speed / 24, 3)) * 100;
+            const noise = (105 + 15 * Math.log10(speed / 8)).toFixed(1);
+            
+            document.getElementById('out-prob').innerText = `%${prob.toFixed(1)}`;
+            document.getElementById('out-speed').innerText = `${speed.toFixed(1)} Kts`;
+            document.getElementById('out-savings').innerText = `%${savings.toFixed(1)}`;
+            document.getElementById('out-noise').innerText = `${noise} dB`;
+            
+            const fuelImpact = fuel === "LNG" ? 0.7 : (fuel === "Hidrojen" ? 0.05 : 1);
+            document.getElementById('out-co2').innerText = `${(dist * 0.2 * (weight/5000) * fuelImpact * (1 - savings/100)).toFixed(1)} kg`;
+            
+            // Görsel Uyarılar
+            const card = document.getElementById('card-prob');
+            const timeLabel = document.getElementById('time-label');
+            const timeBadge = document.getElementById('time-badge');
+            
+            if (time === 'Gece') {
+                timeLabel.innerText = "GECE OPERASYONU (YÜKSEK RİSK)";
+                timeLabel.classList.add('text-orange-500');
+                timeLabel.classList.remove('text-blue-500');
+                timeBadge.querySelector('div').className = "w-2 h-2 rounded-full bg-orange-500 animate-pulse";
+            } else {
+                timeLabel.innerText = "GÜNDÜZ OPERASYONU";
+                timeLabel.classList.add('text-blue-500');
+                timeLabel.classList.remove('text-orange-500');
+                timeBadge.querySelector('div').className = "w-2 h-2 rounded-full bg-blue-500";
+            }
+
+            if (prob > 75) { 
+                card.style.borderColor = "#ef4444"; 
+                card.style.boxShadow = "0 0 20px rgba(239, 68, 68, 0.2)"; 
+            } else if (prob > 50) {
+                card.style.borderColor = "#f59e0b";
+                card.style.boxShadow = "0 0 20px rgba(245, 158, 11, 0.2)";
+            } else { 
+                card.style.borderColor = "#22c55e"; 
+                card.style.boxShadow = "0 0 20px rgba(34, 197, 94, 0.2)"; 
+            }
+        }
+
+        function renderWPList() {
+            document.getElementById('wp-list').innerHTML = waypoints.map((wp, i) => `<div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex justify-between items-center text-white"><span class="text-[10px] font-black bg-blue-600 px-2 py-1 rounded-lg text-white">WP ${i+1}</span><span class="text-[10px] font-mono font-bold text-slate-400 text-white">${wp[0].toFixed(3)}, ${wp[1].toFixed(3)}</span></div>`).join('');
             lucide.createIcons();
-            maps.analysis.flyTo([lat, lon], 9);
         }
 
-        function updateMarker(lat, lon, color) {
-            if (markers.analysis) maps.analysis.removeLayer(markers.analysis);
-            markers.analysis = L.circleMarker([lat, lon], { radius: 15, color: 'white', weight: 4, fillColor: color, fillOpacity: 1 }).addTo(maps.analysis);
+        function clearEverything() { waypoints = []; markers.forEach(m => map.removeLayer(m)); markers = []; if (routeLine) map.removeLayer(routeLine); routeLine = null; document.getElementById('out-dist').innerText = "0.0 Nm"; renderWPList(); updateSystem(); }
+
+        function switchTab(id) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-active'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
+            const btn = document.getElementById('btn-' + id);
+            if (btn) btn.classList.add('tab-active');
+            if (id === 'control') setTimeout(() => initMap(), 250);
+            if (id === 'history') renderHistoryList();
+            lucide.createIcons();
         }
 
-        // --- ROTA MANTIĞI ---
-        function addRoutePoint() {
-            const lat = parseFloat(document.getElementById('stopLat').value);
-            const lon = parseFloat(document.getElementById('stopLon').value);
-            const klor = parseFloat(document.getElementById('stopChlo').value);
-            const ay = document.getElementById('routeMonth').value;
-
-            if (isNaN(lat) || isNaN(lon) || isNaN(klor)) return;
-
-            const durum = (klor / ARSIV[ay]) >= 1.25 ? "RISKLI" : "GUVENLI";
-            const mColor = durum === "RISKLI" ? "#e11d48" : "#2563eb";
-            
-            const marker = L.circleMarker([lat, lon], { radius: 10, color: 'white', weight: 3, fillColor: mColor, fillOpacity: 1, draggable: true }).addTo(maps.route);
-
-            marker.on('mousedown', function () {
-                maps.route.on('mousemove', function (e) { marker.setLatLng(e.latlng); });
-            });
-            maps.route.on('mouseup', function () {
-                maps.route.off('mousemove');
-                syncMarkersToData();
-                calculateFullRoute();
-            });
-
-            routeData.push({ lat, lon, klor, durum, marker });
-            markers.routeMarkers.push(marker);
-            renderRouteList();
-            
-            document.getElementById('stopLat').value = ""; document.getElementById('stopLon').value = ""; document.getElementById('stopChlo').value = "";
-            if (routeData.length === 1) maps.route.setView([lat, lon], 7);
+        function saveVoyage() {
+            if (waypoints.length < 2) return;
+            const rec = {
+                id: Math.floor(Math.random()*999999),
+                date: new Date().toLocaleString('tr-TR'),
+                month: document.getElementById('in-month').value,
+                time: document.getElementById('in-time').value,
+                fuel: document.getElementById('in-fuel').value,
+                chl: document.getElementById('in-chl').value,
+                sst: document.getElementById('in-sst').value,
+                weight: document.getElementById('in-weight').value,
+                prob: document.getElementById('out-prob').innerText,
+                speed: document.getElementById('out-speed').innerText,
+                savings: document.getElementById('out-savings').innerText,
+                noise: document.getElementById('out-noise').innerText,
+                dist: document.getElementById('out-dist').innerText,
+                co2: document.getElementById('out-co2').innerText,
+                wps: JSON.parse(JSON.stringify(waypoints))
+            };
+            historyData.unshift(rec);
+            showNotif("Analiz Arşivlendi.");
+            clearEverything();
         }
 
-        function syncMarkersToData() {
-            routeData.forEach(item => {
-                const currentPos = item.marker.getLatLng();
-                item.lat = currentPos.lat; item.lon = currentPos.lng;
-            });
-            renderRouteList();
-        }
-
-        function renderRouteList() {
-            const list = document.getElementById('routeList');
-            const btn = document.getElementById('calcRouteBtn');
-            list.innerHTML = "";
-            routeData.forEach((p, i) => {
-                const colorClass = p.durum === "RISKLI" ? "text-red-600 bg-red-50" : "text-blue-600 bg-blue-50";
-                list.innerHTML += `
-                    <div class="flex justify-between items-center p-4 bg-white rounded-2xl border border-slate-100 shadow-sm animate-in slide-in-from-left duration-300">
-                        <div class="flex items-center gap-3 text-slate-800">
-                            <span class="w-6 h-6 flex items-center justify-center bg-slate-900 text-white rounded-lg text-[10px] font-black">${i+1}</span>
-                            <div class="text-[10px] font-mono font-bold text-slate-500">
-                                <div>${p.lat.toFixed(3)} | ${p.lon.toFixed(3)}</div>
+        function renderHistoryList() {
+            const list = document.getElementById('hist-list');
+            if (historyData.length === 0) {
+                list.innerHTML = `<div class="text-center py-40 glass-card border-dashed border-slate-800/50 text-white"><i data-lucide="database" class="w-16 h-16 text-slate-800 mx-auto mb-6"></i><p class="text-slate-500 font-bold uppercase text-xs tracking-[0.4em]">Arşiv Temiz</p></div>`;
+            } else {
+                list.innerHTML = historyData.map(h => `
+                    <div onclick="openDetails(${h.id})" class="glass-card p-8 flex justify-between items-center text-white border-slate-800 hover:border-blue-500/50 hover:bg-slate-900/40 transition-all cursor-pointer group">
+                        <div class="space-y-1">
+                            <p class="text-[10px] text-blue-500 font-black tracking-widest uppercase">REF #${h.id}</p>
+                            <h4 class="font-black text-2xl text-white">${h.date}</h4>
+                            <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">${h.dist} | ${h.time} Seyri</p>
+                        </div>
+                        <div class="text-right flex items-center gap-8 text-white">
+                            <div class="hidden md:block text-white">
+                                <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1 text-white">Engellenen CO2</div>
+                                <div class="text-xl font-black text-emerald-500">${h.co2}</div>
+                            </div>
+                            <div class="bg-blue-600/10 p-4 rounded-2xl group-hover:bg-blue-600 transition-all text-white">
+                                <i data-lucide="chevron-right" class="w-6 h-6 text-blue-500 group-hover:text-white"></i>
                             </div>
                         </div>
-                        <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${colorClass}">${p.durum}</span>
-                        <button onclick="removeRoutePoint(${i})" class="p-2 text-slate-300 hover:text-red-500 transition-colors"><i data-lucide="trash-2" class="w-4 h-4 text-slate-400"></i></button>
                     </div>
-                `;
-            });
-            btn.classList.toggle('hidden', routeData.length < 2);
-            lucide.createIcons();
-        }
-
-        function removeRoutePoint(i) { 
-            maps.route.removeLayer(routeData[i].marker);
-            routeData.splice(i, 1); markers.routeMarkers.splice(i, 1);
-            renderRouteList(); calculateFullRoute();
-        }
-
-        function calculateFullRoute() {
-            if (routeData.length < 2) {
-                if (markers.routePath) maps.route.removeLayer(markers.routePath);
-                document.getElementById('routeSummary').classList.add('hidden');
-                return;
+                `).join('');
             }
-            let totalDist = 0; let riskDist = 0;
-            const coords = [];
-            routeData.forEach((p, i) => {
-                coords.push([p.lat, p.lon]);
-                if (i > 0) {
-                    const dist = calculateDistance(routeData[i-1].lat, routeData[i-1].lon, p.lat, p.lon);
-                    totalDist += dist;
-                    if (p.durum === "RISKLI") riskDist += dist;
-                }
-            });
-            if (markers.routePath) maps.route.removeLayer(markers.routePath);
-            markers.routePath = L.polyline(coords, { color: '#2563eb', weight: 5, dashArray: '1, 12', lineCap: 'round', opacity: 0.8 }).addTo(maps.route);
-            document.getElementById('routeSummary').classList.remove('hidden');
-            document.getElementById('totalNM').innerText = totalDist.toFixed(2) + " NM";
-            document.getElementById('riskNM').innerText = riskDist.toFixed(2) + " NM";
-            document.getElementById('fuelSaving').innerText = (riskDist * 2.5).toFixed(1) + " L";
-            maps.route.fitBounds(markers.routePath.getBounds(), { padding: [80, 80] });
             lucide.createIcons();
         }
 
-        window.onload = init;
+        function openDetails(id) {
+            const data = historyData.find(x => x.id === id);
+            if (!data) return;
+
+            document.getElementById('modal-ref').innerText = `SEFER REFERANSI: #${data.id} / ${data.date}`;
+            
+            const content = document.getElementById('modal-content');
+            content.innerHTML = `
+                <div class="space-y-8">
+                    <div>
+                        <h4 class="text-blue-500 font-black text-[10px] uppercase tracking-widest mb-4 border-b border-slate-800 pb-2">Girdi Parametreleri</h4>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Seyir Periyodu</p><p class="text-xl font-black text-white">${data.time}</p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Seyir Ayı</p><p class="text-xl font-black text-white">${data.month}</p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Yakıt Türü</p><p class="text-xl font-black text-white">${data.fuel}</p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Deniz Sıcaklığı</p><p class="text-xl font-black text-white">${data.sst} °C</p></div>
+                            <div class="col-span-2 text-white"><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Gemi Tonajı</p><p class="text-xl font-black text-white">${data.weight} Ton</p></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-emerald-500 font-black text-[10px] uppercase tracking-widest mb-4 border-b border-slate-800 pb-2 text-white">Sefer Çıktıları</h4>
+                        <div class="grid grid-cols-2 gap-6 text-white">
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Toplam Mesafe</p><p class="text-xl font-black text-white">${data.dist}</p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Engellenen CO2</p><p class="text-xl font-black text-emerald-400">${data.co2}</p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Enerji Tasarrufu</p><p class="text-xl font-black text-white">${data.savings}</p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Akustik Etki</p><p class="text-xl font-black text-white">${data.noise}</p></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-8 text-white">
+                    <div>
+                        <h4 class="text-purple-500 font-black text-[10px] uppercase tracking-widest mb-4 border-b border-slate-800 pb-2 text-white">Ekolojik Risk Analizi</h4>
+                        <div class="bg-slate-900/50 p-6 rounded-3xl border border-slate-800 text-white">
+                            <p class="text-[10px] text-slate-500 font-bold uppercase mb-2 text-white">Tahmini Balina Varlığı Riski</p>
+                            <div class="flex items-end gap-3 text-white">
+                                <p class="text-5xl font-black text-white leading-none text-white">${data.prob}</p>
+                                <p class="${data.time === 'Gece' ? 'text-orange-500' : 'text-blue-500'} font-black text-[10px] uppercase mb-1 tracking-widest text-white">${data.time} Seyri Modu</p>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-slate-800 text-white">
+                                <p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Önerilen Seyir Hızı</p>
+                                <p class="text-2xl font-black text-blue-400 text-white">${data.speed}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-slate-400 font-black text-[10px] uppercase tracking-widest mb-4 border-b border-slate-800 pb-2 text-white text-white">Rota Waypointleri</h4>
+                        <div class="max-h-48 overflow-y-auto custom-scrollbar space-y-2 pr-4 text-white">
+                            ${data.wps.map((wp, i) => `
+                                <div class="flex justify-between items-center bg-slate-900 p-3 rounded-xl text-white">
+                                    <span class="text-[10px] font-black bg-blue-600 px-2 py-1 rounded text-white">WP ${i+1}</span>
+                                    <span class="text-[10px] font-mono font-bold text-slate-400 text-white">${wp[0].toFixed(4)} , ${wp[1].toFixed(4)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('detail-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeModal() {
+            document.getElementById('detail-modal').classList.add('hidden');
+        }
+
+        function showNotif(text) { const n = document.getElementById('notification'); const nt = document.getElementById('notif-text'); if (n && nt) { nt.innerText = text; n.classList.remove('hidden'); setTimeout(() => n.classList.add('hidden'), 3000); } }
+
+        window.onload = () => { lucide.createIcons(); switchTab('home'); };
     </script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>W-ALERTER v6.1.17 | Day & Night Ops</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        :root {
+            --primary: #2563eb;
+            --bg-dark: #020617;
+            --glass: rgba(15, 23, 42, 0.9);
+            --glass-intense: rgba(15, 23, 42, 0.98);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            color: #f1f5f9;
+        }
+
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            border-radius: 2rem;
+        }
+
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+        }
+
+        .leaflet-container {
+            background-color: #0f172a !important;
+            border-radius: 2.5rem;
+            z-index: 1;
+        }
+
+        .leaflet-tile-container {
+            filter: saturate(1.1) brightness(1.0) contrast(1.1);
+        }
+
+        .tab-active {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 0 35px rgba(37, 99, 235, 0.4);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #60a5fa, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+
+        .leaflet-interactive {
+            filter: drop-shadow(0 0 10px var(--primary));
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        input, select {
+            background: #020617 !important;
+            border: 1px solid #1e293b !important;
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Navigasyon Barı -->
+    <nav class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-[2000] p-4 text-white">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="bg-blue-600 p-2.5 rounded-2xl shadow-xl">
+                    <i data-lucide="whale" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black tracking-tighter uppercase">W-ALERTER</h1>
+                    <span class="text-blue-500 text-[10px] font-bold tracking-widest uppercase">Day & Night Ops v6.1.17</span>
+                </div>
+            </div>
+            <div class="flex bg-slate-900 border border-slate-800 p-1.5 rounded-2xl">
+                <button onclick="switchTab('home')" id="btn-home" class="tab-btn px-6 py-2.5 rounded-xl transition-all text-slate-400 font-bold text-xs uppercase">Sistem Rehberi</button>
+                <button onclick="switchTab('control')" id="btn-control" class="tab-btn px-6 py-2.5 rounded-xl transition-all text-slate-400 font-bold text-xs uppercase">Navigasyon</button>
+                <button onclick="switchTab('history')" id="btn-history" class="tab-btn px-6 py-2.5 rounded-xl transition-all text-slate-400 font-bold text-xs uppercase">Sefer Arşivi</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Bildirim -->
+    <div id="notification" class="fixed top-24 right-6 bg-blue-600 text-white px-6 py-4 rounded-2xl shadow-2xl z-[3000] hidden flex items-center gap-3 animate-bounce border border-blue-400/30">
+        <i data-lucide="shield-check" class="w-5 h-5 text-white"></i>
+        <span id="notif-text" class="font-bold text-sm tracking-tight"></span>
+    </div>
+
+    <!-- Detay Modalı -->
+    <div id="detail-modal" class="fixed inset-0 z-[4000] hidden flex items-center justify-center p-6 modal-overlay">
+        <div class="glass-card bg-slate-950/95 w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar p-10 border-slate-700 shadow-3xl text-white">
+            <div class="flex justify-between items-start mb-8 border-b border-slate-800 pb-6 text-white">
+                <div>
+                    <p id="modal-ref" class="text-blue-500 font-black text-xs uppercase tracking-widest mb-1"></p>
+                    <h2 class="text-4xl font-black tracking-tighter uppercase">Sefer Detay Analizi</h2>
+                </div>
+                <button onclick="closeModal()" class="bg-slate-900 hover:bg-slate-800 p-3 rounded-2xl transition-all text-white">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            
+            <div id="modal-content" class="grid md:grid-cols-2 gap-10">
+                <!-- Veriler buraya JS ile dolacak -->
+            </div>
+            
+            <div class="mt-10 pt-8 border-t border-slate-800 flex justify-end">
+                <button onclick="closeModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <main class="flex-1 max-w-7xl mx-auto w-full p-6 md:p-10 text-white">
+
+        <!-- SEKME 1: REHBER -->
+        <div id="tab-home" class="tab-content space-y-24 py-10 animate-in fade-in duration-700">
+            <div class="grid lg:grid-cols-2 gap-20 items-center">
+                <div class="space-y-10">
+                    <div class="inline-block px-5 py-2 bg-blue-500/10 border border-blue-500/30 text-blue-400 rounded-full text-[10px] font-black uppercase tracking-[0.3em]">
+                        TÜBİTAK 2204-C ARAŞTIRMA PROJESİ
+                    </div>
+                    <h2 class="text-7xl font-black leading-[0.95] tracking-tighter">
+                        Okyanusun <span class="gradient-text italic">Geleceği</span> Artık Sizin Elinizde.
+                    </h2>
+                    <p class="text-slate-400 text-xl leading-relaxed font-medium max-w-lg">
+                        NASA MODIS-Aqua uydu arşiviyle desteklenen, Antarktika ekosistemini koruyan ve 24 saat kesintisiz güvenli seyir sunan ileri düzey navigasyon platformu.
+                    </p>
+                    
+                    <div class="grid grid-cols-3 gap-4 text-white">
+                        <div class="p-5 bg-slate-900/50 rounded-3xl border border-slate-800 text-white">
+                            <h4 class="text-blue-500 font-black text-[10px] uppercase mb-1">Pervane Yasası</h4>
+                            <p class="text-[9px] text-slate-500 italic leading-tight">Güç, hızın küpüyle doğru orantılıdır.</p>
+                        </div>
+                        <div class="p-5 bg-slate-900/50 rounded-3xl border border-slate-800 text-white">
+                            <h4 class="text-purple-500 font-black text-[10px] uppercase mb-1">Ross Modeli</h4>
+                            <p class="text-[9px] text-slate-500 italic leading-tight text-white">Gelişmiş akustik gürültü denetimi.</p>
+                        </div>
+                        <div class="p-5 bg-slate-900/50 rounded-3xl border border-slate-800 text-white">
+                            <h4 class="text-emerald-500 font-black text-[10px] uppercase mb-1">Night Vision+</h4>
+                            <p class="text-[9px] text-slate-500 italic leading-tight text-white">Gece seyri için dinamik risk denetimi.</p>
+                        </div>
+                    </div>
+
+                    <button onclick="switchTab('control')" class="bg-blue-600 hover:bg-blue-500 text-white px-10 py-5 rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-2xl transition-all active:scale-95">
+                        Rota Planlamaya Başla
+                    </button>
+                </div>
+                
+                <div class="relative group">
+                    <div class="absolute -inset-10 bg-blue-600/10 rounded-full blur-[100px] z-[-1]"></div>
+                    <img src="https://images.unsplash.com/photo-1568430462989-44163eb1752f?auto=format&fit=crop&q=80&w=1000" 
+                         alt="Antarktika Balina Koruma" class="relative rounded-[4rem] border-8 border-slate-900 shadow-2xl w-full object-cover aspect-[4/3]">
+                </div>
+            </div>
+        </div>
+
+        <!-- SEKME 2: NAVİGASYON -->
+        <div id="tab-control" class="tab-content hidden space-y-8 animate-in fade-in duration-500">
+            <div class="grid lg:grid-cols-12 gap-8">
+                
+                <div class="lg:col-span-4 space-y-6 text-white">
+                    <div class="glass-card p-8 space-y-6 border-slate-800 text-white">
+                        <h3 class="font-black text-xs uppercase tracking-widest text-blue-500 border-b border-slate-800 pb-4">Seyir Verileri</h3>
+                        
+                        <div class="grid grid-cols-2 gap-4 text-white">
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Seyir Ayı</label>
+                                <select id="in-month" onchange="updateSystem()" class="w-full p-4 rounded-2xl font-bold text-xs text-white">
+                                    <option value="Ekim">Ekim</option><option value="Kasım">Kasım</option><option value="Aralık">Aralık</option><option value="Ocak">Ocak</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Gündüz/Gece</label>
+                                <select id="in-time" onchange="updateSystem()" class="w-full p-4 rounded-2xl font-bold text-xs text-white">
+                                    <option value="Gündüz">Gündüz</option>
+                                    <option value="Gece">Gece (Riskli)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 text-white">
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Yakıt</label>
+                                <select id="in-fuel" onchange="updateSystem()" class="w-full p-4 rounded-2xl font-bold text-xs text-white">
+                                    <option value="Dizel">Dizel</option><option value="LNG">LNG</option><option value="Hidrojen">Hidrojen</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Klorofil</label>
+                                <input type="number" id="in-chl" value="0.55" step="0.01" oninput="updateSystem()" class="w-full p-4 rounded-2xl font-bold text-xs text-white">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 text-white">
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">SST (°C)</label>
+                                <input type="number" id="in-sst" value="2.5" step="0.1" oninput="updateSystem()" class="w-full p-4 rounded-2xl font-bold text-xs text-white">
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Gemi Tonajı</label>
+                                <input type="number" id="in-weight" value="12000" oninput="updateSystem()" class="w-full p-4 rounded-2xl font-bold text-xs text-white">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 text-white">
+                            <input type="number" id="in-lat" placeholder="LAT" class="p-4 rounded-2xl font-bold text-xs text-white">
+                            <input type="number" id="in-lon" placeholder="LON" class="p-4 rounded-2xl font-bold text-xs text-white">
+                        </div>
+
+                        <button onclick="addWaypoint()" class="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-2xl font-black text-[10px] uppercase text-white shadow-xl">Waypoint Ekle</button>
+                        
+                        <div id="wp-list" class="max-h-32 overflow-y-auto space-y-2 custom-scrollbar text-white"></div>
+
+                        <div class="flex gap-2 border-t border-slate-800 pt-5 text-white">
+                            <button onclick="saveVoyage()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 py-4 rounded-2xl font-black text-[10px] uppercase text-white">Analizi Kaydet</button>
+                            <button onclick="clearEverything()" class="flex-1 bg-slate-800 hover:bg-red-900/30 py-4 rounded-2xl font-black text-[10px] uppercase text-white">Sıfırla</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-8 space-y-8 text-white">
+                    <div class="grid grid-cols-4 gap-4 text-white">
+                        <div id="card-prob" class="glass-card p-6 text-center border-slate-800">
+                            <span class="text-[8px] font-black text-slate-500 uppercase block mb-1 tracking-widest text-white">Risk</span>
+                            <div id="out-prob" class="text-3xl font-black tracking-tighter text-white">--</div>
+                        </div>
+                        <div class="glass-card p-6 text-center bg-blue-500/5 text-white">
+                            <span class="text-[8px] font-black text-blue-500/60 uppercase block mb-1 tracking-widest text-white">Hız</span>
+                            <div id="out-speed" class="text-3xl font-black text-blue-400 tracking-tighter text-white">--</div>
+                        </div>
+                        <div class="glass-card p-6 text-center bg-green-500/5 text-white">
+                            <span class="text-[8px] font-black text-green-500/60 uppercase block mb-1 tracking-widest text-white">Tasarruf</span>
+                            <div id="out-savings" class="text-3xl font-black text-green-400 tracking-tighter text-white">--</div>
+                        </div>
+                        <div class="glass-card p-6 text-center bg-orange-500/5 text-white">
+                            <span class="text-[8px] font-black text-orange-500/60 uppercase block mb-1 tracking-widest text-white">Gürültü</span>
+                            <div id="out-noise" class="text-3xl font-black text-orange-400 tracking-tighter text-white">--</div>
+                        </div>
+                    </div>
+
+                    <div class="h-[520px] glass-card overflow-hidden relative shadow-2xl border-slate-800">
+                        <div id="map" class="h-full w-full"></div>
+                        <div class="absolute bottom-6 left-6 z-[1000] pointer-events-none">
+                            <div class="glass-card bg-slate-950/90 p-4 border-slate-700/50 shadow-2xl">
+                                <div id="time-badge" class="flex items-center gap-2 mb-1">
+                                    <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                                    <span id="time-label" class="text-[10px] font-black text-blue-500 uppercase tracking-widest">Gündüz Operasyonu</span>
+                                </div>
+                                <p class="text-[9px] text-slate-500 leading-tight font-bold">Absolute Blockade v15: Tüm buzullar yasaklı alandır.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-6 text-white">
+                        <div class="glass-card p-8 flex justify-between items-center text-white text-white">
+                            <div>
+                                <span class="text-[10px] font-black text-slate-500 uppercase mb-1 block">CO2</span>
+                                <div id="out-co2" class="text-3xl font-black text-blue-400">0.0 kg</div>
+                            </div>
+                            <i data-lucide="wind" class="text-blue-500/20 w-10 h-10"></i>
+                        </div>
+                        <div class="glass-card p-8 flex justify-between items-center text-white text-white">
+                            <div>
+                                <span class="text-[10px] font-black text-slate-500 uppercase mb-1 block text-white">Mesafe</span>
+                                <div id="out-dist" class="text-3xl font-black text-white font-black text-white">0.0 Nm</div>
+                            </div>
+                            <i data-lucide="ruler" class="text-slate-500/20 w-10 h-10"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-history" class="tab-content hidden py-10 space-y-10 animate-in fade-in duration-500 text-white">
+            <div class="flex justify-between items-end border-b border-slate-800 pb-8 text-white">
+                <h2 class="text-6xl font-black uppercase text-white">Sefer Analizleri</h2>
+                <p class="text-slate-500 font-bold uppercase text-xs tracking-widest mb-2 text-white">Kayıtlı Tüm Operasyonel Veriler</p>
+            </div>
+            <div id="hist-list" class="grid gap-6 text-white">
+                <!-- Arşiv kartları buraya dolacak -->
+            </div>
+        </div>
+
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const ARSIV = { "Ekim": 0.4091, "Kasım": 0.3253, "Aralık": 0.3481, "Ocak": 0.3303 };
+        let map, routeLine, markers = [], waypoints = [], historyData = [], liveChart;
+
+        // --- ABSOLUTE BLOCKADE MASK ---
+        const LAND_ZONES = [
+            { minLat: -76.0, maxLat: -68.4, minLon: -78.0, maxLon: -67.8 }, 
+            { minLat: -65.5, maxLat: -62.0, minLon: -63.0, maxLon: -54.0 }, 
+            { minLat: -68.0, maxLat: -65.5, minLon: -66.0, maxLon: -56.0 }, 
+            { minLat: -72.0, maxLat: -68.0, minLon: -68.5, maxLon: -60.0 }, 
+            { minLat: -75.0, maxLat: -72.0, minLon: -70.0, maxLon: -62.0 },
+            { minLat: -68.4, maxLat: -66.5, minLon: -71.5, maxLon: -67.5 },
+            { minLat: -72.0, maxLat: -69.0, minLon: -78.0, maxLon: -73.0 },
+            { minLat: -90.0, maxLat: -74.0, minLon: -180, maxLon: 180 },
+            { minLat: -56.0, maxLat: 80, minLon: -180, maxLon: -34 }
+        ];
+
+        function isLand(lat, lon) {
+            for (const z of LAND_ZONES) {
+                if (lat >= z.minLat && lat <= z.maxLat && lon >= z.minLon && lon <= z.maxLon) return true;
+            }
+            return false;
+        }
+
+// --- YENİ AKILLI NAVİGASYON MOTORU (PYTHON-BASED) ---
+const STEP = 0.3; // Python'daki 20km adım hassasiyeti
+
+function calculateAdvancedRoute(start, end) {
+    let path = [start];
+    let currLat = start[0];
+    let currLon = start[1];
+    const targetLat = end[0];
+    const targetLon = end[1];
+
+    // 200 adımda hedefe en güvenli ve kısa yolu bulma
+    for (let i = 0; i < 200; i++) {
+        let bestNext = null;
+        let minScore = Infinity;
+
+        // Python'daki moves (8 yönlü hareket)
+        for (let dLat of [-STEP, 0, STEP]) {
+            for (let dLon of [-STEP, 0, STEP]) {
+                if (dLat === 0 && dLon === 0) continue;
+
+                let testLat = currLat + dLat;
+                let testLon = currLon + dLon;
+
+                // Kara/Buzul kontrolü
+                if (!isLand(testLat, testLon)) {
+                    // Mesafe skoru (Hedefe olan yakınlık)
+                    let dist = Math.sqrt(Math.pow(testLat - targetLat, 2) + Math.pow(testLon - targetLon, 2));
+                    if (dist < minScore) {
+                        minScore = dist;
+                        bestNext = [testLat, testLon];
+                    }
+                }
+            }
+        }
+
+        if (!bestNext || minScore < STEP) break;
+        currLat = bestNext[0];
+        currLon = bestNext[1];
+        path.push(bestNext);
+    }
+    path.push(end);
+    return path;
+}
+
+// Mevcut updateRoute fonksiyonunu bu yeni beyne bağlıyoruz
+function updateRoute() {
+    if (waypoints.length < 2) return;
+    if (routeLine) map.removeLayer(routeLine);
+
+    let finalPoints = [];
+    for (let i = 0; i < waypoints.length - 1; i++) {
+        const seg = calculateAdvancedRoute(waypoints[i], waypoints[i+1]);
+        finalPoints = finalPoints.concat(i === 0 ? seg : seg.slice(1));
+    }
+
+    routeLine = L.polyline(finalPoints, { 
+        color: '#3b82f6', 
+        weight: 5, 
+        opacity: 0.9, 
+        lineJoin: 'round', 
+        smoothFactor: 2.0 
+    }).addTo(map);
+
+    map.fitBounds(routeLine.getBounds(), { padding: [80, 80] });
+
+    let d = 0;
+    for(let i=0; i<finalPoints.length-1; i++) {
+        d += L.latLng(finalPoints[i]).distanceTo(L.latLng(finalPoints[i+1])) / 1852;
+    }
+    document.getElementById('out-dist').innerText = d.toFixed(1) + " Nm";
+    updateSystem(); 
+    renderWPList();
+}
+
+        // --- MAP & UI ---
+        function initMap() {
+            if (map) return;
+            map = L.map('map', { 
+                center: [-64.8, -63.0], zoom: 5, zoomControl: false,
+                maxBounds: [[-90, -180], [-58, 0]], maxBoundsViscosity: 1.0
+            });
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+            map.on('click', (e) => {
+                if (isLand(e.latlng.lat, e.latlng.lng)) { showNotif("HATA: Bu bölge yasaklı buzul/kara alanıdır!"); return; }
+                document.getElementById('in-lat').value = e.latlng.lat.toFixed(4);
+                document.getElementById('in-lon').value = e.latlng.lng.toFixed(4);
+                addWaypoint();
+            });
+        }
+
+        function addWaypoint() {
+            const lat = parseFloat(document.getElementById('in-lat').value), lon = parseFloat(document.getElementById('in-lon').value);
+            if (isNaN(lat) || isNaN(lon) || isLand(lat, lon)) return;
+            waypoints.push([lat, lon]);
+            markers.push(L.circleMarker([lat, lon], { radius: 6, color: '#2563eb', weight: 3, fillColor: 'white', fillOpacity: 1 }).addTo(map));
+            updateRoute();
+        }
+
+        function updateRoute() {
+            if (waypoints.length < 2) return;
+            if (routeLine) map.removeLayer(routeLine);
+            let finalPoints = [];
+            for (let i = 0; i < waypoints.length - 1; i++) {
+                const seg = calculatePath(waypoints[i], waypoints[i+1]);
+                const smooth = straightenPath(seg);
+                finalPoints = finalPoints.concat(i === 0 ? smooth : smooth.slice(1));
+            }
+            routeLine = L.polyline(finalPoints, { color: '#3b82f6', weight: 5, opacity: 0.9, lineJoin: 'round', smoothFactor: 3.0 }).addTo(map);
+            map.fitBounds(routeLine.getBounds(), { padding: [80, 80] });
+            let d = 0;
+            for(let i=0; i<finalPoints.length-1; i++) d += L.latLng(finalPoints[i]).distanceTo(L.latLng(finalPoints[i+1])) / 1852;
+            document.getElementById('out-dist').innerText = d.toFixed(1) + " Nm";
+            updateSystem(); renderWPList();
+        }
+
+        function updateSystem() {
+            const getVal = (id) => { const el = document.getElementById(id); return el ? el.value : (id === 'in-sst' ? 2.5 : 0.5); };
+            const chl = getVal('in-chl'), sst = getVal('in-sst'), weight = getVal('in-weight'), fuel = getVal('in-fuel'), time = getVal('in-time');
+            const dist = parseFloat(document.getElementById('out-dist').innerText) || 0;
+            
+            // Risk Hesaplama: Gece faktörü eklendi
+            let probBase = (chl / 0.4) * 40 + (sst > 1 ? 40 : 10);
+            if (time === 'Gece') probBase += 20; // Gece seyri riski artırır
+            
+            const prob = Math.min(Math.max(probBase, 5), 98.5);
+            const speed = prob > 75 ? 8.2 : (prob > 45 ? 11.2 : 19.5);
+            const savings = (1 - Math.pow(speed / 24, 3)) * 100;
+            const noise = (105 + 15 * Math.log10(speed / 8)).toFixed(1);
+            
+            document.getElementById('out-prob').innerText = `%${prob.toFixed(1)}`;
+            document.getElementById('out-speed').innerText = `${speed.toFixed(1)} Kts`;
+            document.getElementById('out-savings').innerText = `%${savings.toFixed(1)}`;
+            document.getElementById('out-noise').innerText = `${noise} dB`;
+            
+            const fuelImpact = fuel === "LNG" ? 0.7 : (fuel === "Hidrojen" ? 0.05 : 1);
+            document.getElementById('out-co2').innerText = `${(dist * 0.2 * (weight/5000) * fuelImpact * (1 - savings/100)).toFixed(1)} kg`;
+            
+            // Görsel Uyarılar
+            const card = document.getElementById('card-prob');
+            const timeLabel = document.getElementById('time-label');
+            const timeBadge = document.getElementById('time-badge');
+            
+            if (time === 'Gece') {
+                timeLabel.innerText = "GECE OPERASYONU (YÜKSEK RİSK)";
+                timeLabel.classList.add('text-orange-500');
+                timeLabel.classList.remove('text-blue-500');
+                timeBadge.querySelector('div').className = "w-2 h-2 rounded-full bg-orange-500 animate-pulse";
+            } else {
+                timeLabel.innerText = "GÜNDÜZ OPERASYONU";
+                timeLabel.classList.add('text-blue-500');
+                timeLabel.classList.remove('text-orange-500');
+                timeBadge.querySelector('div').className = "w-2 h-2 rounded-full bg-blue-500";
+            }
+
+            if (prob > 75) { 
+                card.style.borderColor = "#ef4444"; 
+                card.style.boxShadow = "0 0 20px rgba(239, 68, 68, 0.2)"; 
+            } else if (prob > 50) {
+                card.style.borderColor = "#f59e0b";
+                card.style.boxShadow = "0 0 20px rgba(245, 158, 11, 0.2)";
+            } else { 
+                card.style.borderColor = "#22c55e"; 
+                card.style.boxShadow = "0 0 20px rgba(34, 197, 94, 0.2)"; 
+            }
+        }
+
+        function renderWPList() {
+            document.getElementById('wp-list').innerHTML = waypoints.map((wp, i) => `<div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex justify-between items-center text-white"><span class="text-[10px] font-black bg-blue-600 px-2 py-1 rounded-lg text-white">WP ${i+1}</span><span class="text-[10px] font-mono font-bold text-slate-400 text-white">${wp[0].toFixed(3)}, ${wp[1].toFixed(3)}</span></div>`).join('');
+            lucide.createIcons();
+        }
+
+        function clearEverything() { waypoints = []; markers.forEach(m => map.removeLayer(m)); markers = []; if (routeLine) map.removeLayer(routeLine); routeLine = null; document.getElementById('out-dist').innerText = "0.0 Nm"; renderWPList(); updateSystem(); }
+
+        function switchTab(id) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-active'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
+            const btn = document.getElementById('btn-' + id);
+            if (btn) btn.classList.add('tab-active');
+            if (id === 'control') setTimeout(() => initMap(), 250);
+            if (id === 'history') renderHistoryList();
+            lucide.createIcons();
+        }
+
+        function saveVoyage() {
+            if (waypoints.length < 2) return;
+            const rec = {
+                id: Math.floor(Math.random()*999999),
+                date: new Date().toLocaleString('tr-TR'),
+                month: document.getElementById('in-month').value,
+                time: document.getElementById('in-time').value,
+                fuel: document.getElementById('in-fuel').value,
+                chl: document.getElementById('in-chl').value,
+                sst: document.getElementById('in-sst').value,
+                weight: document.getElementById('in-weight').value,
+                prob: document.getElementById('out-prob').innerText,
+                speed: document.getElementById('out-speed').innerText,
+                savings: document.getElementById('out-savings').innerText,
+                noise: document.getElementById('out-noise').innerText,
+                dist: document.getElementById('out-dist').innerText,
+                co2: document.getElementById('out-co2').innerText,
+                wps: JSON.parse(JSON.stringify(waypoints))
+            };
+            historyData.unshift(rec);
+            showNotif("Analiz Arşivlendi.");
+            clearEverything();
+        }
+
+        function renderHistoryList() {
+            const list = document.getElementById('hist-list');
+            if (historyData.length === 0) {
+                list.innerHTML = `<div class="text-center py-40 glass-card border-dashed border-slate-800/50 text-white"><i data-lucide="database" class="w-16 h-16 text-slate-800 mx-auto mb-6"></i><p class="text-slate-500 font-bold uppercase text-xs tracking-[0.4em]">Arşiv Temiz</p></div>`;
+            } else {
+                list.innerHTML = historyData.map(h => `
+                    <div onclick="openDetails(${h.id})" class="glass-card p-8 flex justify-between items-center text-white border-slate-800 hover:border-blue-500/50 hover:bg-slate-900/40 transition-all cursor-pointer group">
+                        <div class="space-y-1">
+                            <p class="text-[10px] text-blue-500 font-black tracking-widest uppercase">REF #${h.id}</p>
+                            <h4 class="font-black text-2xl text-white">${h.date}</h4>
+                            <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">${h.dist} | ${h.time} Seyri</p>
+                        </div>
+                        <div class="text-right flex items-center gap-8 text-white">
+                            <div class="hidden md:block text-white">
+                                <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1 text-white">Engellenen CO2</div>
+                                <div class="text-xl font-black text-emerald-500">${h.co2}</div>
+                            </div>
+                            <div class="bg-blue-600/10 p-4 rounded-2xl group-hover:bg-blue-600 transition-all text-white">
+                                <i data-lucide="chevron-right" class="w-6 h-6 text-blue-500 group-hover:text-white"></i>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            lucide.createIcons();
+        }
+
+        function openDetails(id) {
+            const data = historyData.find(x => x.id === id);
+            if (!data) return;
+
+            document.getElementById('modal-ref').innerText = `SEFER REFERANSI: #${data.id} / ${data.date}`;
+            
+            const content = document.getElementById('modal-content');
+            content.innerHTML = `
+                <div class="space-y-8">
+                    <div>
+                        <h4 class="text-blue-500 font-black text-[10px] uppercase tracking-widest mb-4 border-b border-slate-800 pb-2">Girdi Parametreleri</h4>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Seyir Periyodu</p><p class="text-xl font-black text-white">${data.time}</p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Seyir Ayı</p><p class="text-xl font-black text-white">${data.month}</p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Yakıt Türü</p><p class="text-xl font-black text-white">${data.fuel}</p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Deniz Sıcaklığı</p><p class="text-xl font-black text-white">${data.sst} °C</p></div>
+                            <div class="col-span-2 text-white"><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Gemi Tonajı</p><p class="text-xl font-black text-white">${data.weight} Ton</p></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-emerald-500 font-black text-[10px] uppercase tracking-widest mb-4 border-b border-slate-800 pb-2 text-white">Sefer Çıktıları</h4>
+                        <div class="grid grid-cols-2 gap-6 text-white">
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Toplam Mesafe</p><p class="text-xl font-black text-white">${data.dist}</p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Engellenen CO2</p><p class="text-xl font-black text-emerald-400">${data.co2}</p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Enerji Tasarrufu</p><p class="text-xl font-black text-white">${data.savings}</p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Akustik Etki</p><p class="text-xl font-black text-white">${data.noise}</p></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-8 text-white">
+                    <div>
+                        <h4 class="text-purple-500 font-black text-[10px] uppercase tracking-widest mb-4 border-b border-slate-800 pb-2 text-white">Ekolojik Risk Analizi</h4>
+                        <div class="bg-slate-900/50 p-6 rounded-3xl border border-slate-800 text-white">
+                            <p class="text-[10px] text-slate-500 font-bold uppercase mb-2 text-white">Tahmini Balina Varlığı Riski</p>
+                            <div class="flex items-end gap-3 text-white">
+                                <p class="text-5xl font-black text-white leading-none text-white">${data.prob}</p>
+                                <p class="${data.time === 'Gece' ? 'text-orange-500' : 'text-blue-500'} font-black text-[10px] uppercase mb-1 tracking-widest text-white">${data.time} Seyri Modu</p>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-slate-800 text-white">
+                                <p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Önerilen Seyir Hızı</p>
+                                <p class="text-2xl font-black text-blue-400 text-white">${data.speed}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-slate-400 font-black text-[10px] uppercase tracking-widest mb-4 border-b border-slate-800 pb-2 text-white text-white">Rota Waypointleri</h4>
+                        <div class="max-h-48 overflow-y-auto custom-scrollbar space-y-2 pr-4 text-white">
+                            ${data.wps.map((wp, i) => `
+                                <div class="flex justify-between items-center bg-slate-900 p-3 rounded-xl text-white">
+                                    <span class="text-[10px] font-black bg-blue-600 px-2 py-1 rounded text-white">WP ${i+1}</span>
+                                    <span class="text-[10px] font-mono font-bold text-slate-400 text-white">${wp[0].toFixed(4)} , ${wp[1].toFixed(4)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('detail-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeModal() {
+            document.getElementById('detail-modal').classList.add('hidden');
+        }
+
+        function showNotif(text) { const n = document.getElementById('notification'); const nt = document.getElementById('notif-text'); if (n && nt) { nt.innerText = text; n.classList.remove('hidden'); setTimeout(() => n.classList.add('hidden'), 3000); } }
+
+        window.onload = () => { lucide.createIcons(); switchTab('home'); };
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>W-ALERTER v6.1.17 | Day & Night Ops</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        :root {
+            --primary: #2563eb;
+            --bg-dark: #020617;
+            --glass: rgba(15, 23, 42, 0.9);
+            --glass-intense: rgba(15, 23, 42, 0.98);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            color: #f1f5f9;
+        }
+
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            border-radius: 2rem;
+        }
+
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+        }
+
+        .leaflet-container {
+            background-color: #0f172a !important;
+            border-radius: 2.5rem;
+            z-index: 1;
+        }
+
+        .leaflet-tile-container {
+            filter: saturate(1.1) brightness(1.0) contrast(1.1);
+        }
+
+        .tab-active {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 0 35px rgba(37, 99, 235, 0.4);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #60a5fa, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+
+        .leaflet-interactive {
+            filter: drop-shadow(0 0 10px var(--primary));
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        input, select {
+            background: #020617 !important;
+            border: 1px solid #1e293b !important;
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Navigasyon Barı -->
+    <nav class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-[2000] p-4 text-white">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="bg-blue-600 p-2.5 rounded-2xl shadow-xl">
+                    <i data-lucide="whale" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black tracking-tighter uppercase">W-ALERTER</h1>
+                    <span class="text-blue-500 text-[10px] font-bold tracking-widest uppercase">Day & Night Ops v6.1.17</span>
+                </div>
+            </div>
+            <div class="flex bg-slate-900 border border-slate-800 p-1.5 rounded-2xl">
+                <button onclick="switchTab('home')" id="btn-home" class="tab-btn px-6 py-2.5 rounded-xl transition-all text-slate-400 font-bold text-xs uppercase">Sistem Rehberi</button>
+                <button onclick="switchTab('control')" id="btn-control" class="tab-btn px-6 py-2.5 rounded-xl transition-all text-slate-400 font-bold text-xs uppercase">Navigasyon</button>
+                <button onclick="switchTab('history')" id="btn-history" class="tab-btn px-6 py-2.5 rounded-xl transition-all text-slate-400 font-bold text-xs uppercase">Sefer Arşivi</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Bildirim -->
+    <div id="notification" class="fixed top-24 right-6 bg-blue-600 text-white px-6 py-4 rounded-2xl shadow-2xl z-[3000] hidden flex items-center gap-3 animate-bounce border border-blue-400/30">
+        <i data-lucide="shield-check" class="w-5 h-5 text-white"></i>
+        <span id="notif-text" class="font-bold text-sm tracking-tight"></span>
+    </div>
+
+    <!-- Detay Modalı -->
+    <div id="detail-modal" class="fixed inset-0 z-[4000] hidden flex items-center justify-center p-6 modal-overlay">
+        <div class="glass-card bg-slate-950/95 w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar p-10 border-slate-700 shadow-3xl text-white">
+            <div class="flex justify-between items-start mb-8 border-b border-slate-800 pb-6 text-white">
+                <div>
+                    <p id="modal-ref" class="text-blue-500 font-black text-xs uppercase tracking-widest mb-1"></p>
+                    <h2 class="text-4xl font-black tracking-tighter uppercase">Sefer Detay Analizi</h2>
+                </div>
+                <button onclick="closeModal()" class="bg-slate-900 hover:bg-slate-800 p-3 rounded-2xl transition-all text-white">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            
+            <div id="modal-content" class="grid md:grid-cols-2 gap-10">
+                <!-- Veriler buraya JS ile dolacak -->
+            </div>
+            
+            <div class="mt-10 pt-8 border-t border-slate-800 flex justify-end">
+                <button onclick="closeModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <main class="flex-1 max-w-7xl mx-auto w-full p-6 md:p-10 text-white">
+
+        <!-- SEKME 1: REHBER -->
+        <div id="tab-home" class="tab-content space-y-24 py-10 animate-in fade-in duration-700">
+            <div class="grid lg:grid-cols-2 gap-20 items-center">
+                <div class="space-y-10">
+                    <div class="inline-block px-5 py-2 bg-blue-500/10 border border-blue-500/30 text-blue-400 rounded-full text-[10px] font-black uppercase tracking-[0.3em]">
+                        TÜBİTAK 2204-C ARAŞTIRMA PROJESİ
+                    </div>
+                    <h2 class="text-7xl font-black leading-[0.95] tracking-tighter">
+                        Okyanusun <span class="gradient-text italic">Geleceği</span> Artık Sizin Elinizde.
+                    </h2>
+                    <p class="text-slate-400 text-xl leading-relaxed font-medium max-w-lg">
+                        NASA MODIS-Aqua uydu arşiviyle desteklenen, Antarktika ekosistemini koruyan ve 24 saat kesintisiz güvenli seyir sunan ileri düzey navigasyon platformu.
+                    </p>
+                    
+                    <div class="grid grid-cols-3 gap-4 text-white">
+                        <div class="p-5 bg-slate-900/50 rounded-3xl border border-slate-800 text-white">
+                            <h4 class="text-blue-500 font-black text-[10px] uppercase mb-1">Pervane Yasası</h4>
+                            <p class="text-[9px] text-slate-500 italic leading-tight">Güç, hızın küpüyle doğru orantılıdır.</p>
+                        </div>
+                        <div class="p-5 bg-slate-900/50 rounded-3xl border border-slate-800 text-white">
+                            <h4 class="text-purple-500 font-black text-[10px] uppercase mb-1">Ross Modeli</h4>
+                            <p class="text-[9px] text-slate-500 italic leading-tight text-white">Gelişmiş akustik gürültü denetimi.</p>
+                        </div>
+                        <div class="p-5 bg-slate-900/50 rounded-3xl border border-slate-800 text-white">
+                            <h4 class="text-emerald-500 font-black text-[10px] uppercase mb-1">Night Vision+</h4>
+                            <p class="text-[9px] text-slate-500 italic leading-tight text-white">Gece seyri için dinamik risk denetimi.</p>
+                        </div>
+                    </div>
+
+                    <button onclick="switchTab('control')" class="bg-blue-600 hover:bg-blue-500 text-white px-10 py-5 rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-2xl transition-all active:scale-95">
+                        Rota Planlamaya Başla
+                    </button>
+                </div>
+                
+                <div class="relative group">
+                    <div class="absolute -inset-10 bg-blue-600/10 rounded-full blur-[100px] z-[-1]"></div>
+                    <img src="https://images.unsplash.com/photo-1568430462989-44163eb1752f?auto=format&fit=crop&q=80&w=1000" 
+                         alt="Antarktika Balina Koruma" class="relative rounded-[4rem] border-8 border-slate-900 shadow-2xl w-full object-cover aspect-[4/3]">
+                </div>
+            </div>
+        </div>
+
+        <!-- SEKME 2: NAVİGASYON -->
+        <div id="tab-control" class="tab-content hidden space-y-8 animate-in fade-in duration-500">
+            <div class="grid lg:grid-cols-12 gap-8">
+                
+                <div class="lg:col-span-4 space-y-6 text-white">
+                    <div class="glass-card p-8 space-y-6 border-slate-800 text-white">
+                        <h3 class="font-black text-xs uppercase tracking-widest text-blue-500 border-b border-slate-800 pb-4">Seyir Verileri</h3>
+                        
+                        <div class="grid grid-cols-2 gap-4 text-white">
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Seyir Ayı</label>
+                                <select id="in-month" onchange="updateSystem()" class="w-full p-4 rounded-2xl font-bold text-xs text-white">
+                                    <option value="Ekim">Ekim</option><option value="Kasım">Kasım</option><option value="Aralık">Aralık</option><option value="Ocak">Ocak</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Gündüz/Gece</label>
+                                <select id="in-time" onchange="updateSystem()" class="w-full p-4 rounded-2xl font-bold text-xs text-white">
+                                    <option value="Gündüz">Gündüz</option>
+                                    <option value="Gece">Gece (Riskli)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 text-white">
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Yakıt</label>
+                                <select id="in-fuel" onchange="updateSystem()" class="w-full p-4 rounded-2xl font-bold text-xs text-white">
+                                    <option value="Dizel">Dizel</option><option value="LNG">LNG</option><option value="Hidrojen">Hidrojen</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Klorofil</label>
+                                <input type="number" id="in-chl" value="0.55" step="0.01" oninput="updateSystem()" class="w-full p-4 rounded-2xl font-bold text-xs text-white">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 text-white">
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">SST (°C)</label>
+                                <input type="number" id="in-sst" value="2.5" step="0.1" oninput="updateSystem()" class="w-full p-4 rounded-2xl font-bold text-xs text-white">
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Gemi Tonajı</label>
+                                <input type="number" id="in-weight" value="12000" oninput="updateSystem()" class="w-full p-4 rounded-2xl font-bold text-xs text-white">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 text-white">
+                            <input type="number" id="in-lat" placeholder="LAT" class="p-4 rounded-2xl font-bold text-xs text-white">
+                            <input type="number" id="in-lon" placeholder="LON" class="p-4 rounded-2xl font-bold text-xs text-white">
+                        </div>
+
+                        <button onclick="addWaypoint()" class="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-2xl font-black text-[10px] uppercase text-white shadow-xl">Waypoint Ekle</button>
+                        
+                        <div id="wp-list" class="max-h-32 overflow-y-auto space-y-2 custom-scrollbar text-white"></div>
+
+                        <div class="flex gap-2 border-t border-slate-800 pt-5 text-white">
+                            <button onclick="saveVoyage()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 py-4 rounded-2xl font-black text-[10px] uppercase text-white">Analizi Kaydet</button>
+                            <button onclick="clearEverything()" class="flex-1 bg-slate-800 hover:bg-red-900/30 py-4 rounded-2xl font-black text-[10px] uppercase text-white">Sıfırla</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-8 space-y-8 text-white">
+                    <div class="grid grid-cols-4 gap-4 text-white">
+                        <div id="card-prob" class="glass-card p-6 text-center border-slate-800">
+                            <span class="text-[8px] font-black text-slate-500 uppercase block mb-1 tracking-widest text-white">Risk</span>
+                            <div id="out-prob" class="text-3xl font-black tracking-tighter text-white">--</div>
+                        </div>
+                        <div class="glass-card p-6 text-center bg-blue-500/5 text-white">
+                            <span class="text-[8px] font-black text-blue-500/60 uppercase block mb-1 tracking-widest text-white">Hız</span>
+                            <div id="out-speed" class="text-3xl font-black text-blue-400 tracking-tighter text-white">--</div>
+                        </div>
+                        <div class="glass-card p-6 text-center bg-green-500/5 text-white">
+                            <span class="text-[8px] font-black text-green-500/60 uppercase block mb-1 tracking-widest text-white">Tasarruf</span>
+                            <div id="out-savings" class="text-3xl font-black text-green-400 tracking-tighter text-white">--</div>
+                        </div>
+                        <div class="glass-card p-6 text-center bg-orange-500/5 text-white">
+                            <span class="text-[8px] font-black text-orange-500/60 uppercase block mb-1 tracking-widest text-white">Gürültü</span>
+                            <div id="out-noise" class="text-3xl font-black text-orange-400 tracking-tighter text-white">--</div>
+                        </div>
+                    </div>
+
+                    <div class="h-[520px] glass-card overflow-hidden relative shadow-2xl border-slate-800">
+                        <div id="map" class="h-full w-full"></div>
+                        <div class="absolute bottom-6 left-6 z-[1000] pointer-events-none">
+                            <div class="glass-card bg-slate-950/90 p-4 border-slate-700/50 shadow-2xl">
+                                <div id="time-badge" class="flex items-center gap-2 mb-1">
+                                    <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                                    <span id="time-label" class="text-[10px] font-black text-blue-500 uppercase tracking-widest">Gündüz Operasyonu</span>
+                                </div>
+                                <p class="text-[9px] text-slate-500 leading-tight font-bold">Absolute Blockade v15: Tüm buzullar yasaklı alandır.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-6 text-white">
+                        <div class="glass-card p-8 flex justify-between items-center text-white text-white">
+                            <div>
+                                <span class="text-[10px] font-black text-slate-500 uppercase mb-1 block">CO2</span>
+                                <div id="out-co2" class="text-3xl font-black text-blue-400">0.0 kg</div>
+                            </div>
+                            <i data-lucide="wind" class="text-blue-500/20 w-10 h-10"></i>
+                        </div>
+                        <div class="glass-card p-8 flex justify-between items-center text-white text-white">
+                            <div>
+                                <span class="text-[10px] font-black text-slate-500 uppercase mb-1 block text-white">Mesafe</span>
+                                <div id="out-dist" class="text-3xl font-black text-white font-black text-white">0.0 Nm</div>
+                            </div>
+                            <i data-lucide="ruler" class="text-slate-500/20 w-10 h-10"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-history" class="tab-content hidden py-10 space-y-10 animate-in fade-in duration-500 text-white">
+            <div class="flex justify-between items-end border-b border-slate-800 pb-8 text-white">
+                <h2 class="text-6xl font-black uppercase text-white">Sefer Analizleri</h2>
+                <p class="text-slate-500 font-bold uppercase text-xs tracking-widest mb-2 text-white">Kayıtlı Tüm Operasyonel Veriler</p>
+            </div>
+            <div id="hist-list" class="grid gap-6 text-white">
+                <!-- Arşiv kartları buraya dolacak -->
+            </div>
+        </div>
+
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const ARSIV = { "Ekim": 0.4091, "Kasım": 0.3253, "Aralık": 0.3481, "Ocak": 0.3303 };
+        let map, routeLine, markers = [], waypoints = [], historyData = [], liveChart;
+
+        // --- ABSOLUTE BLOCKADE MASK ---
+        const LAND_ZONES = [
+            { minLat: -76.0, maxLat: -68.4, minLon: -78.0, maxLon: -67.8 }, 
+            { minLat: -65.5, maxLat: -62.0, minLon: -63.0, maxLon: -54.0 }, 
+            { minLat: -68.0, maxLat: -65.5, minLon: -66.0, maxLon: -56.0 }, 
+            { minLat: -72.0, maxLat: -68.0, minLon: -68.5, maxLon: -60.0 }, 
+            { minLat: -75.0, maxLat: -72.0, minLon: -70.0, maxLon: -62.0 },
+            { minLat: -68.4, maxLat: -66.5, minLon: -71.5, maxLon: -67.5 },
+            { minLat: -72.0, maxLat: -69.0, minLon: -78.0, maxLon: -73.0 },
+            { minLat: -90.0, maxLat: -74.0, minLon: -180, maxLon: 180 },
+            { minLat: -56.0, maxLat: 80, minLon: -180, maxLon: -34 }
+        ];
+
+        function isLand(lat, lon) {
+            for (const z of LAND_ZONES) {
+                if (lat >= z.minLat && lat <= z.maxLat && lon >= z.minLon && lon <= z.maxLon) return true;
+            }
+            return false;
+        }
+
+        // --- ROUTE ENGINE ---
+        function calculatePath(start, end, depth = 0) {
+            if (depth > 10) return [start, end];
+            const samples = 150;
+            let collision = null;
+            for (let i = 1; i < samples; i++) {
+                let t = i / samples;
+                let lat = start[0] + (end[0] - start[0]) * t;
+                let lon = start[1] + (end[1] - start[1]) * t;
+                if (isLand(lat, lon)) { collision = [lat, lon]; break; }
+            }
+            if (collision) {
+                let bestBypass = null;
+                let minExtension = Infinity;
+                for (let dist = 5.0; dist < 50; dist += 3.0) {
+                    for (let angle = 10; angle <= 170; angle += 10) {
+                        for (let dir of [1, -1]) {
+                            const rad = (angle * dir) * (Math.PI / 180);
+                            const dx = end[1] - start[1], dy = end[0] - start[0];
+                            const nx = dx * Math.cos(rad) - dy * Math.sin(rad);
+                            const ny = dx * Math.sin(rad) + dy * Math.cos(rad);
+                            const mag = Math.sqrt(nx*nx + ny*ny) || 1;
+                            let testLat = collision[0] + (ny/mag) * dist;
+                            let testLon = collision[1] + (nx/mag) * dist;
+                            if (!isLand(testLat, testLon)) {
+                                const totalDist = L.latLng(start).distanceTo([testLat, testLon]) + 
+                                                  L.latLng([testLat, testLon]).distanceTo(end);
+                                if (totalDist < minExtension) { minExtension = totalDist; bestBypass = [testLat, testLon]; }
+                            }
+                        }
+                    }
+                    if (bestBypass) break;
+                }
+                if (bestBypass) {
+                    const p1 = calculatePath(start, bestBypass, depth + 1);
+                    const p2 = calculatePath(bestBypass, end, depth + 1);
+                    return [...p1, ...p2.slice(1)];
+                }
+            }
+            return [start, end];
+        }
+
+        function straightenPath(points) {
+            if (points.length < 3) return points;
+            let result = [points[0]];
+            let curr = 0;
+            while (curr < points.length - 1) {
+                let furthest = curr + 1;
+                for (let check = curr + 2; check < points.length; check++) {
+                    if (isLineClear(points[curr], points[check])) furthest = check;
+                }
+                result.push(points[furthest]);
+                curr = furthest;
+            }
+            return result;
+        }
+
+        function isLineClear(p1, p2) {
+            const steps = 120;
+            for (let i = 1; i <= steps; i++) {
+                let t = i / steps;
+                if (isLand(p1[0] + (p2[0]-p1[0])*t, p1[1] + (p2[1]-p1[1])*t)) return false;
+            }
+            return true;
+        }
+
+        // --- MAP & UI ---
+        function initMap() {
+            if (map) return;
+            map = L.map('map', { 
+                center: [-64.8, -63.0], zoom: 5, zoomControl: false,
+                maxBounds: [[-90, -180], [-58, 0]], maxBoundsViscosity: 1.0
+            });
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+            map.on('click', (e) => {
+                if (isLand(e.latlng.lat, e.latlng.lng)) { showNotif("HATA: Bu bölge yasaklı buzul/kara alanıdır!"); return; }
+                document.getElementById('in-lat').value = e.latlng.lat.toFixed(4);
+                document.getElementById('in-lon').value = e.latlng.lng.toFixed(4);
+                addWaypoint();
+            });
+        }
+
+        function addWaypoint() {
+            const lat = parseFloat(document.getElementById('in-lat').value), lon = parseFloat(document.getElementById('in-lon').value);
+            if (isNaN(lat) || isNaN(lon) || isLand(lat, lon)) return;
+            waypoints.push([lat, lon]);
+            markers.push(L.circleMarker([lat, lon], { radius: 6, color: '#2563eb', weight: 3, fillColor: 'white', fillOpacity: 1 }).addTo(map));
+            updateRoute();
+        }
+
+        function updateRoute() {
+            if (waypoints.length < 2) return;
+            if (routeLine) map.removeLayer(routeLine);
+            let finalPoints = [];
+            for (let i = 0; i < waypoints.length - 1; i++) {
+                const seg = calculatePath(waypoints[i], waypoints[i+1]);
+                const smooth = straightenPath(seg);
+                finalPoints = finalPoints.concat(i === 0 ? smooth : smooth.slice(1));
+            }
+            routeLine = L.polyline(finalPoints, { color: '#3b82f6', weight: 5, opacity: 0.9, lineJoin: 'round', smoothFactor: 3.0 }).addTo(map);
+            map.fitBounds(routeLine.getBounds(), { padding: [80, 80] });
+            let d = 0;
+            for(let i=0; i<finalPoints.length-1; i++) d += L.latLng(finalPoints[i]).distanceTo(L.latLng(finalPoints[i+1])) / 1852;
+            document.getElementById('out-dist').innerText = d.toFixed(1) + " Nm";
+            updateSystem(); renderWPList();
+        }
+
+        function updateSystem() {
+            const getVal = (id) => { const el = document.getElementById(id); return el ? el.value : (id === 'in-sst' ? 2.5 : 0.5); };
+            const chl = getVal('in-chl'), sst = getVal('in-sst'), weight = getVal('in-weight'), fuel = getVal('in-fuel'), time = getVal('in-time');
+            const dist = parseFloat(document.getElementById('out-dist').innerText) || 0;
+            
+            // Risk Hesaplama: Gece faktörü eklendi
+            let probBase = (chl / 0.4) * 40 + (sst > 1 ? 40 : 10);
+            if (time === 'Gece') probBase += 20; // Gece seyri riski artırır
+            
+            const prob = Math.min(Math.max(probBase, 5), 98.5);
+            const speed = prob > 75 ? 8.2 : (prob > 45 ? 11.2 : 19.5);
+            const savings = (1 - Math.pow(speed / 24, 3)) * 100;
+            const noise = (105 + 15 * Math.log10(speed / 8)).toFixed(1);
+            
+            document.getElementById('out-prob').innerText = `%${prob.toFixed(1)}`;
+            document.getElementById('out-speed').innerText = `${speed.toFixed(1)} Kts`;
+            document.getElementById('out-savings').innerText = `%${savings.toFixed(1)}`;
+            document.getElementById('out-noise').innerText = `${noise} dB`;
+            
+            const fuelImpact = fuel === "LNG" ? 0.7 : (fuel === "Hidrojen" ? 0.05 : 1);
+            document.getElementById('out-co2').innerText = `${(dist * 0.2 * (weight/5000) * fuelImpact * (1 - savings/100)).toFixed(1)} kg`;
+            
+            // Görsel Uyarılar
+            const card = document.getElementById('card-prob');
+            const timeLabel = document.getElementById('time-label');
+            const timeBadge = document.getElementById('time-badge');
+            
+            if (time === 'Gece') {
+                timeLabel.innerText = "GECE OPERASYONU (YÜKSEK RİSK)";
+                timeLabel.classList.add('text-orange-500');
+                timeLabel.classList.remove('text-blue-500');
+                timeBadge.querySelector('div').className = "w-2 h-2 rounded-full bg-orange-500 animate-pulse";
+            } else {
+                timeLabel.innerText = "GÜNDÜZ OPERASYONU";
+                timeLabel.classList.add('text-blue-500');
+                timeLabel.classList.remove('text-orange-500');
+                timeBadge.querySelector('div').className = "w-2 h-2 rounded-full bg-blue-500";
+            }
+
+            if (prob > 75) { 
+                card.style.borderColor = "#ef4444"; 
+                card.style.boxShadow = "0 0 20px rgba(239, 68, 68, 0.2)"; 
+            } else if (prob > 50) {
+                card.style.borderColor = "#f59e0b";
+                card.style.boxShadow = "0 0 20px rgba(245, 158, 11, 0.2)";
+            } else { 
+                card.style.borderColor = "#22c55e"; 
+                card.style.boxShadow = "0 0 20px rgba(34, 197, 94, 0.2)"; 
+            }
+        }
+
+        function renderWPList() {
+            document.getElementById('wp-list').innerHTML = waypoints.map((wp, i) => `<div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex justify-between items-center text-white"><span class="text-[10px] font-black bg-blue-600 px-2 py-1 rounded-lg text-white">WP ${i+1}</span><span class="text-[10px] font-mono font-bold text-slate-400 text-white">${wp[0].toFixed(3)}, ${wp[1].toFixed(3)}</span></div>`).join('');
+            lucide.createIcons();
+        }
+
+        function clearEverything() { waypoints = []; markers.forEach(m => map.removeLayer(m)); markers = []; if (routeLine) map.removeLayer(routeLine); routeLine = null; document.getElementById('out-dist').innerText = "0.0 Nm"; renderWPList(); updateSystem(); }
+
+        function switchTab(id) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-active'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
+            const btn = document.getElementById('btn-' + id);
+            if (btn) btn.classList.add('tab-active');
+            if (id === 'control') setTimeout(() => initMap(), 250);
+            if (id === 'history') renderHistoryList();
+            lucide.createIcons();
+        }
+
+        function saveVoyage() {
+            if (waypoints.length < 2) return;
+            const rec = {
+                id: Math.floor(Math.random()*999999),
+                date: new Date().toLocaleString('tr-TR'),
+                month: document.getElementById('in-month').value,
+                time: document.getElementById('in-time').value,
+                fuel: document.getElementById('in-fuel').value,
+                chl: document.getElementById('in-chl').value,
+                sst: document.getElementById('in-sst').value,
+                weight: document.getElementById('in-weight').value,
+                prob: document.getElementById('out-prob').innerText,
+                speed: document.getElementById('out-speed').innerText,
+                savings: document.getElementById('out-savings').innerText,
+                noise: document.getElementById('out-noise').innerText,
+                dist: document.getElementById('out-dist').innerText,
+                co2: document.getElementById('out-co2').innerText,
+                wps: JSON.parse(JSON.stringify(waypoints))
+            };
+            historyData.unshift(rec);
+            showNotif("Analiz Arşivlendi.");
+            clearEverything();
+        }
+
+        function renderHistoryList() {
+            const list = document.getElementById('hist-list');
+            if (historyData.length === 0) {
+                list.innerHTML = `<div class="text-center py-40 glass-card border-dashed border-slate-800/50 text-white"><i data-lucide="database" class="w-16 h-16 text-slate-800 mx-auto mb-6"></i><p class="text-slate-500 font-bold uppercase text-xs tracking-[0.4em]">Arşiv Temiz</p></div>`;
+            } else {
+                list.innerHTML = historyData.map(h => `
+                    <div onclick="openDetails(${h.id})" class="glass-card p-8 flex justify-between items-center text-white border-slate-800 hover:border-blue-500/50 hover:bg-slate-900/40 transition-all cursor-pointer group">
+                        <div class="space-y-1">
+                            <p class="text-[10px] text-blue-500 font-black tracking-widest uppercase">REF #${h.id}</p>
+                            <h4 class="font-black text-2xl text-white">${h.date}</h4>
+                            <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">${h.dist} | ${h.time} Seyri</p>
+                        </div>
+                        <div class="text-right flex items-center gap-8 text-white">
+                            <div class="hidden md:block text-white">
+                                <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1 text-white">Engellenen CO2</div>
+                                <div class="text-xl font-black text-emerald-500">${h.co2}</div>
+                            </div>
+                            <div class="bg-blue-600/10 p-4 rounded-2xl group-hover:bg-blue-600 transition-all text-white">
+                                <i data-lucide="chevron-right" class="w-6 h-6 text-blue-500 group-hover:text-white"></i>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            lucide.createIcons();
+        }
+
+        function openDetails(id) {
+            const data = historyData.find(x => x.id === id);
+            if (!data) return;
+
+            document.getElementById('modal-ref').innerText = `SEFER REFERANSI: #${data.id} / ${data.date}`;
+            
+            const content = document.getElementById('modal-content');
+            content.innerHTML = `
+                <div class="space-y-8">
+                    <div>
+                        <h4 class="text-blue-500 font-black text-[10px] uppercase tracking-widest mb-4 border-b border-slate-800 pb-2">Girdi Parametreleri</h4>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Seyir Periyodu</p><p class="text-xl font-black text-white">${data.time}</p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Seyir Ayı</p><p class="text-xl font-black text-white">${data.month}</p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Yakıt Türü</p><p class="text-xl font-black text-white">${data.fuel}</p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Deniz Sıcaklığı</p><p class="text-xl font-black text-white">${data.sst} °C</p></div>
+                            <div class="col-span-2 text-white"><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Gemi Tonajı</p><p class="text-xl font-black text-white">${data.weight} Ton</p></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-emerald-500 font-black text-[10px] uppercase tracking-widest mb-4 border-b border-slate-800 pb-2 text-white">Sefer Çıktıları</h4>
+                        <div class="grid grid-cols-2 gap-6 text-white">
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Toplam Mesafe</p><p class="text-xl font-black text-white">${data.dist}</p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Engellenen CO2</p><p class="text-xl font-black text-emerald-400">${data.co2}</p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Enerji Tasarrufu</p><p class="text-xl font-black text-white">${data.savings}</p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Akustik Etki</p><p class="text-xl font-black text-white">${data.noise}</p></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-8 text-white">
+                    <div>
+                        <h4 class="text-purple-500 font-black text-[10px] uppercase tracking-widest mb-4 border-b border-slate-800 pb-2 text-white">Ekolojik Risk Analizi</h4>
+                        <div class="bg-slate-900/50 p-6 rounded-3xl border border-slate-800 text-white">
+                            <p class="text-[10px] text-slate-500 font-bold uppercase mb-2 text-white">Tahmini Balina Varlığı Riski</p>
+                            <div class="flex items-end gap-3 text-white">
+                                <p class="text-5xl font-black text-white leading-none text-white">${data.prob}</p>
+                                <p class="${data.time === 'Gece' ? 'text-orange-500' : 'text-blue-500'} font-black text-[10px] uppercase mb-1 tracking-widest text-white">${data.time} Seyri Modu</p>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-slate-800 text-white">
+                                <p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Önerilen Seyir Hızı</p>
+                                <p class="text-2xl font-black text-blue-400 text-white">${data.speed}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-slate-400 font-black text-[10px] uppercase tracking-widest mb-4 border-b border-slate-800 pb-2 text-white text-white">Rota Waypointleri</h4>
+                        <div class="max-h-48 overflow-y-auto custom-scrollbar space-y-2 pr-4 text-white">
+                            ${data.wps.map((wp, i) => `
+                                <div class="flex justify-between items-center bg-slate-900 p-3 rounded-xl text-white">
+                                    <span class="text-[10px] font-black bg-blue-600 px-2 py-1 rounded text-white">WP ${i+1}</span>
+                                    <span class="text-[10px] font-mono font-bold text-slate-400 text-white">${wp[0].toFixed(4)} , ${wp[1].toFixed(4)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('detail-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeModal() {
+            document.getElementById('detail-modal').classList.add('hidden');
+        }
+
+        function showNotif(text) { const n = document.getElementById('notification'); const nt = document.getElementById('notif-text'); if (n && nt) { nt.innerText = text; n.classList.remove('hidden'); setTimeout(() => n.classList.add('hidden'), 3000); } }
+
+        window.onload = () => { lucide.createIcons(); switchTab('home'); };
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>W-ALERTER v6.1.17 | Day & Night Ops</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        :root {
+            --primary: #2563eb;
+            --bg-dark: #020617;
+            --glass: rgba(15, 23, 42, 0.9);
+            --glass-intense: rgba(15, 23, 42, 0.98);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            color: #f1f5f9;
+        }
+
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            border-radius: 2rem;
+        }
+
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+        }
+
+        .leaflet-container {
+            background-color: #0f172a !important;
+            border-radius: 2.5rem;
+            z-index: 1;
+        }
+
+        .leaflet-tile-container {
+            filter: saturate(1.1) brightness(1.0) contrast(1.1);
+        }
+
+        .tab-active {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 0 35px rgba(37, 99, 235, 0.4);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #60a5fa, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+
+        .leaflet-interactive {
+            filter: drop-shadow(0 0 10px var(--primary));
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        input, select {
+            background: #020617 !important;
+            border: 1px solid #1e293b !important;
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Navigasyon Barı -->
+    <nav class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-[2000] p-4 text-white">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="bg-blue-600 p-2.5 rounded-2xl shadow-xl">
+                    <i data-lucide="whale" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black tracking-tighter uppercase">W-ALERTER</h1>
+                    <span class="text-blue-500 text-[10px] font-bold tracking-widest uppercase">Day & Night Ops v6.1.17</span>
+                </div>
+            </div>
+            <div class="flex bg-slate-900 border border-slate-800 p-1.5 rounded-2xl">
+                <button onclick="switchTab('home')" id="btn-home" class="tab-btn px-6 py-2.5 rounded-xl transition-all text-slate-400 font-bold text-xs uppercase">Sistem Rehberi</button>
+                <button onclick="switchTab('control')" id="btn-control" class="tab-btn px-6 py-2.5 rounded-xl transition-all text-slate-400 font-bold text-xs uppercase">Navigasyon</button>
+                <button onclick="switchTab('history')" id="btn-history" class="tab-btn px-6 py-2.5 rounded-xl transition-all text-slate-400 font-bold text-xs uppercase">Sefer Arşivi</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Bildirim -->
+    <div id="notification" class="fixed top-24 right-6 bg-blue-600 text-white px-6 py-4 rounded-2xl shadow-2xl z-[3000] hidden flex items-center gap-3 animate-bounce border border-blue-400/30">
+        <i data-lucide="shield-check" class="w-5 h-5 text-white"></i>
+        <span id="notif-text" class="font-bold text-sm tracking-tight"></span>
+    </div>
+
+    <!-- Detay Modalı -->
+    <div id="detail-modal" class="fixed inset-0 z-[4000] hidden flex items-center justify-center p-6 modal-overlay">
+        <div class="glass-card bg-slate-950/95 w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar p-10 border-slate-700 shadow-3xl text-white">
+            <div class="flex justify-between items-start mb-8 border-b border-slate-800 pb-6 text-white">
+                <div>
+                    <p id="modal-ref" class="text-blue-500 font-black text-xs uppercase tracking-widest mb-1"></p>
+                    <h2 class="text-4xl font-black tracking-tighter uppercase">Sefer Detay Analizi</h2>
+                </div>
+                <button onclick="closeModal()" class="bg-slate-900 hover:bg-slate-800 p-3 rounded-2xl transition-all text-white">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            
+            <div id="modal-content" class="grid md:grid-cols-2 gap-10">
+                <!-- Veriler buraya JS ile dolacak -->
+            </div>
+            
+            <div class="mt-10 pt-8 border-t border-slate-800 flex justify-end">
+                <button onclick="closeModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <main class="flex-1 max-w-7xl mx-auto w-full p-6 md:p-10 text-white">
+
+        <!-- SEKME 1: REHBER -->
+        <div id="tab-home" class="tab-content space-y-24 py-10 animate-in fade-in duration-700">
+            <div class="grid lg:grid-cols-2 gap-20 items-center">
+                <div class="space-y-10">
+                    <div class="inline-block px-5 py-2 bg-blue-500/10 border border-blue-500/30 text-blue-400 rounded-full text-[10px] font-black uppercase tracking-[0.3em]">
+                        TÜBİTAK 2204-C ARAŞTIRMA PROJESİ
+                    </div>
+                    <h2 class="text-7xl font-black leading-[0.95] tracking-tighter">
+                        Okyanusun <span class="gradient-text italic">Geleceği</span> Artık Sizin Elinizde.
+                    </h2>
+                    <p class="text-slate-400 text-xl leading-relaxed font-medium max-w-lg">
+                        NASA MODIS-Aqua uydu arşiviyle desteklenen, Antarktika ekosistemini koruyan ve 24 saat kesintisiz güvenli seyir sunan ileri düzey navigasyon platformu.
+                    </p>
+                    
+                    <div class="grid grid-cols-3 gap-4 text-white">
+                        <div class="p-5 bg-slate-900/50 rounded-3xl border border-slate-800 text-white">
+                            <h4 class="text-blue-500 font-black text-[10px] uppercase mb-1">Pervane Yasası</h4>
+                            <p class="text-[9px] text-slate-500 italic leading-tight">Güç, hızın küpüyle doğru orantılıdır.</p>
+                        </div>
+                        <div class="p-5 bg-slate-900/50 rounded-3xl border border-slate-800 text-white">
+                            <h4 class="text-purple-500 font-black text-[10px] uppercase mb-1">Ross Modeli</h4>
+                            <p class="text-[9px] text-slate-500 italic leading-tight text-white">Gelişmiş akustik gürültü denetimi.</p>
+                        </div>
+                        <div class="p-5 bg-slate-900/50 rounded-3xl border border-slate-800 text-white">
+                            <h4 class="text-emerald-500 font-black text-[10px] uppercase mb-1">Night Vision+</h4>
+                            <p class="text-[9px] text-slate-500 italic leading-tight text-white">Gece seyri için dinamik risk denetimi.</p>
+                        </div>
+                    </div>
+
+                    <button onclick="switchTab('control')" class="bg-blue-600 hover:bg-blue-500 text-white px-10 py-5 rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-2xl transition-all active:scale-95">
+                        Rota Planlamaya Başla
+                    </button>
+                </div>
+                
+                <div class="relative group">
+                    <div class="absolute -inset-10 bg-blue-600/10 rounded-full blur-[100px] z-[-1]"></div>
+                    <img src="https://images.unsplash.com/photo-1568430462989-44163eb1752f?auto=format&fit=crop&q=80&w=1000" 
+                         alt="Antarktika Balina Koruma" class="relative rounded-[4rem] border-8 border-slate-900 shadow-2xl w-full object-cover aspect-[4/3]">
+                </div>
+            </div>
+        </div>
+
+        <!-- SEKME 2: NAVİGASYON -->
+        <div id="tab-control" class="tab-content hidden space-y-8 animate-in fade-in duration-500">
+            <div class="grid lg:grid-cols-12 gap-8">
+                
+                <div class="lg:col-span-4 space-y-6 text-white">
+                    <div class="glass-card p-8 space-y-6 border-slate-800 text-white">
+                        <h3 class="font-black text-xs uppercase tracking-widest text-blue-500 border-b border-slate-800 pb-4">Seyir Verileri</h3>
+                        
+                        <div class="grid grid-cols-2 gap-4 text-white">
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Seyir Ayı</label>
+                                <select id="in-month" onchange="updateSystem()" class="w-full p-4 rounded-2xl font-bold text-xs text-white">
+                                    <option value="Ekim">Ekim</option><option value="Kasım">Kasım</option><option value="Aralık">Aralık</option><option value="Ocak">Ocak</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Gündüz/Gece</label>
+                                <select id="in-time" onchange="updateSystem()" class="w-full p-4 rounded-2xl font-bold text-xs text-white">
+                                    <option value="Gündüz">Gündüz</option>
+                                    <option value="Gece">Gece (Riskli)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 text-white">
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Yakıt</label>
+                                <select id="in-fuel" onchange="updateSystem()" class="w-full p-4 rounded-2xl font-bold text-xs text-white">
+                                    <option value="Dizel">Dizel</option><option value="LNG">LNG</option><option value="Hidrojen">Hidrojen</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Klorofil</label>
+                                <input type="number" id="in-chl" value="0.55" step="0.01" oninput="updateSystem()" class="w-full p-4 rounded-2xl font-bold text-xs text-white">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 text-white">
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">SST (°C)</label>
+                                <input type="number" id="in-sst" value="2.5" step="0.1" oninput="updateSystem()" class="w-full p-4 rounded-2xl font-bold text-xs text-white">
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Gemi Tonajı</label>
+                                <input type="number" id="in-weight" value="12000" oninput="updateSystem()" class="w-full p-4 rounded-2xl font-bold text-xs text-white">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 text-white">
+                            <input type="number" id="in-lat" placeholder="LAT" class="p-4 rounded-2xl font-bold text-xs text-white">
+                            <input type="number" id="in-lon" placeholder="LON" class="p-4 rounded-2xl font-bold text-xs text-white">
+                        </div>
+
+                        <button onclick="addWaypoint()" class="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-2xl font-black text-[10px] uppercase text-white shadow-xl">Waypoint Ekle</button>
+                        
+                        <div id="wp-list" class="max-h-32 overflow-y-auto space-y-2 custom-scrollbar text-white"></div>
+
+                        <div class="flex gap-2 border-t border-slate-800 pt-5 text-white">
+                            <button onclick="saveVoyage()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 py-4 rounded-2xl font-black text-[10px] uppercase text-white">Analizi Kaydet</button>
+                            <button onclick="clearEverything()" class="flex-1 bg-slate-800 hover:bg-red-900/30 py-4 rounded-2xl font-black text-[10px] uppercase text-white">Sıfırla</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-8 space-y-8 text-white">
+                    <div class="grid grid-cols-4 gap-4 text-white">
+                        <div id="card-prob" class="glass-card p-6 text-center border-slate-800">
+                            <span class="text-[8px] font-black text-slate-500 uppercase block mb-1 tracking-widest text-white">Risk</span>
+                            <div id="out-prob" class="text-3xl font-black tracking-tighter text-white">--</div>
+                        </div>
+                        <div class="glass-card p-6 text-center bg-blue-500/5 text-white">
+                            <span class="text-[8px] font-black text-blue-500/60 uppercase block mb-1 tracking-widest text-white">Hız</span>
+                            <div id="out-speed" class="text-3xl font-black text-blue-400 tracking-tighter text-white">--</div>
+                        </div>
+                        <div class="glass-card p-6 text-center bg-green-500/5 text-white">
+                            <span class="text-[8px] font-black text-green-500/60 uppercase block mb-1 tracking-widest text-white">Tasarruf</span>
+                            <div id="out-savings" class="text-3xl font-black text-green-400 tracking-tighter text-white">--</div>
+                        </div>
+                        <div class="glass-card p-6 text-center bg-orange-500/5 text-white">
+                            <span class="text-[8px] font-black text-orange-500/60 uppercase block mb-1 tracking-widest text-white">Gürültü</span>
+                            <div id="out-noise" class="text-3xl font-black text-orange-400 tracking-tighter text-white">--</div>
+                        </div>
+                    </div>
+
+                    <div class="h-[520px] glass-card overflow-hidden relative shadow-2xl border-slate-800">
+                        <div id="map" class="h-full w-full"></div>
+                        <div class="absolute bottom-6 left-6 z-[1000] pointer-events-none">
+                            <div class="glass-card bg-slate-950/90 p-4 border-slate-700/50 shadow-2xl">
+                                <div id="time-badge" class="flex items-center gap-2 mb-1">
+                                    <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                                    <span id="time-label" class="text-[10px] font-black text-blue-500 uppercase tracking-widest">Gündüz Operasyonu</span>
+                                </div>
+                                <p class="text-[9px] text-slate-500 leading-tight font-bold">Absolute Blockade v15: Tüm buzullar yasaklı alandır.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-6 text-white">
+                        <div class="glass-card p-8 flex justify-between items-center text-white text-white">
+                            <div>
+                                <span class="text-[10px] font-black text-slate-500 uppercase mb-1 block">CO2</span>
+                                <div id="out-co2" class="text-3xl font-black text-blue-400">0.0 kg</div>
+                            </div>
+                            <i data-lucide="wind" class="text-blue-500/20 w-10 h-10"></i>
+                        </div>
+                        <div class="glass-card p-8 flex justify-between items-center text-white text-white">
+                            <div>
+                                <span class="text-[10px] font-black text-slate-500 uppercase mb-1 block text-white">Mesafe</span>
+                                <div id="out-dist" class="text-3xl font-black text-white font-black text-white">0.0 Nm</div>
+                            </div>
+                            <i data-lucide="ruler" class="text-slate-500/20 w-10 h-10"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-history" class="tab-content hidden py-10 space-y-10 animate-in fade-in duration-500 text-white">
+            <div class="flex justify-between items-end border-b border-slate-800 pb-8 text-white">
+                <h2 class="text-6xl font-black uppercase text-white">Sefer Analizleri</h2>
+                <p class="text-slate-500 font-bold uppercase text-xs tracking-widest mb-2 text-white">Kayıtlı Tüm Operasyonel Veriler</p>
+            </div>
+            <div id="hist-list" class="grid gap-6 text-white">
+                <!-- Arşiv kartları buraya dolacak -->
+            </div>
+        </div>
+
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const ARSIV = { "Ekim": 0.4091, "Kasım": 0.3253, "Aralık": 0.3481, "Ocak": 0.3303 };
+        let map, routeLine, markers = [], waypoints = [], historyData = [], liveChart;
+
+        // --- ABSOLUTE BLOCKADE MASK ---
+        const LAND_ZONES = [
+            { minLat: -76.0, maxLat: -68.4, minLon: -78.0, maxLon: -67.8 }, 
+            { minLat: -65.5, maxLat: -62.0, minLon: -63.0, maxLon: -54.0 }, 
+            { minLat: -68.0, maxLat: -65.5, minLon: -66.0, maxLon: -56.0 }, 
+            { minLat: -72.0, maxLat: -68.0, minLon: -68.5, maxLon: -60.0 }, 
+            { minLat: -75.0, maxLat: -72.0, minLon: -70.0, maxLon: -62.0 },
+            { minLat: -68.4, maxLat: -66.5, minLon: -71.5, maxLon: -67.5 },
+            { minLat: -72.0, maxLat: -69.0, minLon: -78.0, maxLon: -73.0 },
+            { minLat: -90.0, maxLat: -74.0, minLon: -180, maxLon: 180 },
+            { minLat: -56.0, maxLat: 80, minLon: -180, maxLon: -34 }
+        ];
+
+        function isLand(lat, lon) {
+            for (const z of LAND_ZONES) {
+                if (lat >= z.minLat && lat <= z.maxLat && lon >= z.minLon && lon <= z.maxLon) return true;
+            }
+            return false;
+        }
+
+        // --- ROUTE ENGINE ---
+        function calculatePath(start, end, depth = 0) {
+            if (depth > 10) return [start, end];
+            const samples = 150;
+            let collision = null;
+            for (let i = 1; i < samples; i++) {
+                let t = i / samples;
+                let lat = start[0] + (end[0] - start[0]) * t;
+                let lon = start[1] + (end[1] - start[1]) * t;
+                if (isLand(lat, lon)) { collision = [lat, lon]; break; }
+            }
+            if (collision) {
+                let bestBypass = null;
+                let minExtension = Infinity;
+                for (let dist = 5.0; dist < 50; dist += 3.0) {
+                    for (let angle = 10; angle <= 170; angle += 10) {
+                        for (let dir of [1, -1]) {
+                            const rad = (angle * dir) * (Math.PI / 180);
+                            const dx = end[1] - start[1], dy = end[0] - start[0];
+                            const nx = dx * Math.cos(rad) - dy * Math.sin(rad);
+                            const ny = dx * Math.sin(rad) + dy * Math.cos(rad);
+                            const mag = Math.sqrt(nx*nx + ny*ny) || 1;
+                            let testLat = collision[0] + (ny/mag) * dist;
+                            let testLon = collision[1] + (nx/mag) * dist;
+                            if (!isLand(testLat, testLon)) {
+                                const totalDist = L.latLng(start).distanceTo([testLat, testLon]) + 
+                                                  L.latLng([testLat, testLon]).distanceTo(end);
+                                if (totalDist < minExtension) { minExtension = totalDist; bestBypass = [testLat, testLon]; }
+                            }
+                        }
+                    }
+                    if (bestBypass) break;
+                }
+                if (bestBypass) {
+                    const p1 = calculatePath(start, bestBypass, depth + 1);
+                    const p2 = calculatePath(bestBypass, end, depth + 1);
+                    return [...p1, ...p2.slice(1)];
+                }
+            }
+            return [start, end];
+        }
+
+        function straightenPath(points) {
+            if (points.length < 3) return points;
+            let result = [points[0]];
+            let curr = 0;
+            while (curr < points.length - 1) {
+                let furthest = curr + 1;
+                for (let check = curr + 2; check < points.length; check++) {
+                    if (isLineClear(points[curr], points[check])) furthest = check;
+                }
+                result.push(points[furthest]);
+                curr = furthest;
+            }
+            return result;
+        }
+
+        function isLineClear(p1, p2) {
+            const steps = 120;
+            for (let i = 1; i <= steps; i++) {
+                let t = i / steps;
+                if (isLand(p1[0] + (p2[0]-p1[0])*t, p1[1] + (p2[1]-p1[1])*t)) return false;
+            }
+            return true;
+        }
+
+        // --- MAP & UI ---
+        function initMap() {
+            if (map) return;
+            map = L.map('map', { 
+                center: [-64.8, -63.0], zoom: 5, zoomControl: false,
+                maxBounds: [[-90, -180], [-58, 0]], maxBoundsViscosity: 1.0
+            });
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+            map.on('click', (e) => {
+                if (isLand(e.latlng.lat, e.latlng.lng)) { showNotif("HATA: Bu bölge yasaklı buzul/kara alanıdır!"); return; }
+                document.getElementById('in-lat').value = e.latlng.lat.toFixed(4);
+                document.getElementById('in-lon').value = e.latlng.lng.toFixed(4);
+                addWaypoint();
+            });
+        }
+
+        function addWaypoint() {
+            const lat = parseFloat(document.getElementById('in-lat').value), lon = parseFloat(document.getElementById('in-lon').value);
+            if (isNaN(lat) || isNaN(lon) || isLand(lat, lon)) return;
+            waypoints.push([lat, lon]);
+            markers.push(L.circleMarker([lat, lon], { radius: 6, color: '#2563eb', weight: 3, fillColor: 'white', fillOpacity: 1 }).addTo(map));
+            updateRoute();
+        }
+
+        function updateRoute() {
+            if (waypoints.length < 2) return;
+            if (routeLine) map.removeLayer(routeLine);
+            let finalPoints = [];
+            for (let i = 0; i < waypoints.length - 1; i++) {
+                const seg = calculatePath(waypoints[i], waypoints[i+1]);
+                const smooth = straightenPath(seg);
+                finalPoints = finalPoints.concat(i === 0 ? smooth : smooth.slice(1));
+            }
+            routeLine = L.polyline(finalPoints, { color: '#3b82f6', weight: 5, opacity: 0.9, lineJoin: 'round', smoothFactor: 3.0 }).addTo(map);
+            map.fitBounds(routeLine.getBounds(), { padding: [80, 80] });
+            let d = 0;
+            for(let i=0; i<finalPoints.length-1; i++) d += L.latLng(finalPoints[i]).distanceTo(L.latLng(finalPoints[i+1])) / 1852;
+            document.getElementById('out-dist').innerText = d.toFixed(1) + " Nm";
+            updateSystem(); renderWPList();
+        }
+
+        function updateSystem() {
+            const getVal = (id) => { const el = document.getElementById(id); return el ? el.value : (id === 'in-sst' ? 2.5 : 0.5); };
+            const chl = getVal('in-chl'), sst = getVal('in-sst'), weight = getVal('in-weight'), fuel = getVal('in-fuel'), time = getVal('in-time');
+            const dist = parseFloat(document.getElementById('out-dist').innerText) || 0;
+            
+            // Risk Hesaplama: Gece faktörü eklendi
+            let probBase = (chl / 0.4) * 40 + (sst > 1 ? 40 : 10);
+            if (time === 'Gece') probBase += 20; // Gece seyri riski artırır
+            
+            const prob = Math.min(Math.max(probBase, 5), 98.5);
+            const speed = prob > 75 ? 8.2 : (prob > 45 ? 11.2 : 19.5);
+            const savings = (1 - Math.pow(speed / 24, 3)) * 100;
+            const noise = (105 + 15 * Math.log10(speed / 8)).toFixed(1);
+            
+            document.getElementById('out-prob').innerText = `%${prob.toFixed(1)}`;
+            document.getElementById('out-speed').innerText = `${speed.toFixed(1)} Kts`;
+            document.getElementById('out-savings').innerText = `%${savings.toFixed(1)}`;
+            document.getElementById('out-noise').innerText = `${noise} dB`;
+            
+            const fuelImpact = fuel === "LNG" ? 0.7 : (fuel === "Hidrojen" ? 0.05 : 1);
+            document.getElementById('out-co2').innerText = `${(dist * 0.2 * (weight/5000) * fuelImpact * (1 - savings/100)).toFixed(1)} kg`;
+            
+            // Görsel Uyarılar
+            const card = document.getElementById('card-prob');
+            const timeLabel = document.getElementById('time-label');
+            const timeBadge = document.getElementById('time-badge');
+            
+            if (time === 'Gece') {
+                timeLabel.innerText = "GECE OPERASYONU (YÜKSEK RİSK)";
+                timeLabel.classList.add('text-orange-500');
+                timeLabel.classList.remove('text-blue-500');
+                timeBadge.querySelector('div').className = "w-2 h-2 rounded-full bg-orange-500 animate-pulse";
+            } else {
+                timeLabel.innerText = "GÜNDÜZ OPERASYONU";
+                timeLabel.classList.add('text-blue-500');
+                timeLabel.classList.remove('text-orange-500');
+                timeBadge.querySelector('div').className = "w-2 h-2 rounded-full bg-blue-500";
+            }
+
+            if (prob > 75) { 
+                card.style.borderColor = "#ef4444"; 
+                card.style.boxShadow = "0 0 20px rgba(239, 68, 68, 0.2)"; 
+            } else if (prob > 50) {
+                card.style.borderColor = "#f59e0b";
+                card.style.boxShadow = "0 0 20px rgba(245, 158, 11, 0.2)";
+            } else { 
+                card.style.borderColor = "#22c55e"; 
+                card.style.boxShadow = "0 0 20px rgba(34, 197, 94, 0.2)"; 
+            }
+        }
+
+        function renderWPList() {
+            document.getElementById('wp-list').innerHTML = waypoints.map((wp, i) => `<div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex justify-between items-center text-white"><span class="text-[10px] font-black bg-blue-600 px-2 py-1 rounded-lg text-white">WP ${i+1}</span><span class="text-[10px] font-mono font-bold text-slate-400 text-white">${wp[0].toFixed(3)}, ${wp[1].toFixed(3)}</span></div>`).join('');
+            lucide.createIcons();
+        }
+
+        function clearEverything() { waypoints = []; markers.forEach(m => map.removeLayer(m)); markers = []; if (routeLine) map.removeLayer(routeLine); routeLine = null; document.getElementById('out-dist').innerText = "0.0 Nm"; renderWPList(); updateSystem(); }
+
+        function switchTab(id) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-active'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
+            const btn = document.getElementById('btn-' + id);
+            if (btn) btn.classList.add('tab-active');
+            if (id === 'control') setTimeout(() => initMap(), 250);
+            if (id === 'history') renderHistoryList();
+            lucide.createIcons();
+        }
+
+        function saveVoyage() {
+            if (waypoints.length < 2) return;
+            const rec = {
+                id: Math.floor(Math.random()*999999),
+                date: new Date().toLocaleString('tr-TR'),
+                month: document.getElementById('in-month').value,
+                time: document.getElementById('in-time').value,
+                fuel: document.getElementById('in-fuel').value,
+                chl: document.getElementById('in-chl').value,
+                sst: document.getElementById('in-sst').value,
+                weight: document.getElementById('in-weight').value,
+                prob: document.getElementById('out-prob').innerText,
+                speed: document.getElementById('out-speed').innerText,
+                savings: document.getElementById('out-savings').innerText,
+                noise: document.getElementById('out-noise').innerText,
+                dist: document.getElementById('out-dist').innerText,
+                co2: document.getElementById('out-co2').innerText,
+                wps: JSON.parse(JSON.stringify(waypoints))
+            };
+            historyData.unshift(rec);
+            showNotif("Analiz Arşivlendi.");
+            clearEverything();
+        }
+
+        function renderHistoryList() {
+            const list = document.getElementById('hist-list');
+            if (historyData.length === 0) {
+                list.innerHTML = `<div class="text-center py-40 glass-card border-dashed border-slate-800/50 text-white"><i data-lucide="database" class="w-16 h-16 text-slate-800 mx-auto mb-6"></i><p class="text-slate-500 font-bold uppercase text-xs tracking-[0.4em]">Arşiv Temiz</p></div>`;
+            } else {
+                list.innerHTML = historyData.map(h => `
+                    <div onclick="openDetails(${h.id})" class="glass-card p-8 flex justify-between items-center text-white border-slate-800 hover:border-blue-500/50 hover:bg-slate-900/40 transition-all cursor-pointer group">
+                        <div class="space-y-1">
+                            <p class="text-[10px] text-blue-500 font-black tracking-widest uppercase">REF #${h.id}</p>
+                            <h4 class="font-black text-2xl text-white">${h.date}</h4>
+                            <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">${h.dist} | ${h.time} Seyri</p>
+                        </div>
+                        <div class="text-right flex items-center gap-8 text-white">
+                            <div class="hidden md:block text-white">
+                                <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1 text-white">Engellenen CO2</div>
+                                <div class="text-xl font-black text-emerald-500">${h.co2}</div>
+                            </div>
+                            <div class="bg-blue-600/10 p-4 rounded-2xl group-hover:bg-blue-600 transition-all text-white">
+                                <i data-lucide="chevron-right" class="w-6 h-6 text-blue-500 group-hover:text-white"></i>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            lucide.createIcons();
+        }
+
+        function openDetails(id) {
+            const data = historyData.find(x => x.id === id);
+            if (!data) return;
+
+            document.getElementById('modal-ref').innerText = `SEFER REFERANSI: #${data.id} / ${data.date}`;
+            
+            const content = document.getElementById('modal-content');
+            content.innerHTML = `
+                <div class="space-y-8">
+                    <div>
+                        <h4 class="text-blue-500 font-black text-[10px] uppercase tracking-widest mb-4 border-b border-slate-800 pb-2">Girdi Parametreleri</h4>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Seyir Periyodu</p><p class="text-xl font-black text-white">${data.time}</p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Seyir Ayı</p><p class="text-xl font-black text-white">${data.month}</p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Yakıt Türü</p><p class="text-xl font-black text-white">${data.fuel}</p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Deniz Sıcaklığı</p><p class="text-xl font-black text-white">${data.sst} °C</p></div>
+                            <div class="col-span-2 text-white"><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Gemi Tonajı</p><p class="text-xl font-black text-white">${data.weight} Ton</p></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-emerald-500 font-black text-[10px] uppercase tracking-widest mb-4 border-b border-slate-800 pb-2 text-white">Sefer Çıktıları</h4>
+                        <div class="grid grid-cols-2 gap-6 text-white">
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Toplam Mesafe</p><p class="text-xl font-black text-white">${data.dist}</p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Engellenen CO2</p><p class="text-xl font-black text-emerald-400">${data.co2}</p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Enerji Tasarrufu</p><p class="text-xl font-black text-white">${data.savings}</p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Akustik Etki</p><p class="text-xl font-black text-white">${data.noise}</p></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-8 text-white">
+                    <div>
+                        <h4 class="text-purple-500 font-black text-[10px] uppercase tracking-widest mb-4 border-b border-slate-800 pb-2 text-white">Ekolojik Risk Analizi</h4>
+                        <div class="bg-slate-900/50 p-6 rounded-3xl border border-slate-800 text-white">
+                            <p class="text-[10px] text-slate-500 font-bold uppercase mb-2 text-white">Tahmini Balina Varlığı Riski</p>
+                            <div class="flex items-end gap-3 text-white">
+                                <p class="text-5xl font-black text-white leading-none text-white">${data.prob}</p>
+                                <p class="${data.time === 'Gece' ? 'text-orange-500' : 'text-blue-500'} font-black text-[10px] uppercase mb-1 tracking-widest text-white">${data.time} Seyri Modu</p>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-slate-800 text-white">
+                                <p class="text-[10px] text-slate-500 font-bold uppercase mb-1 text-white">Önerilen Seyir Hızı</p>
+                                <p class="text-2xl font-black text-blue-400 text-white">${data.speed}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-slate-400 font-black text-[10px] uppercase tracking-widest mb-4 border-b border-slate-800 pb-2 text-white text-white">Rota Waypointleri</h4>
+                        <div class="max-h-48 overflow-y-auto custom-scrollbar space-y-2 pr-4 text-white">
+                            ${data.wps.map((wp, i) => `
+                                <div class="flex justify-between items-center bg-slate-900 p-3 rounded-xl text-white">
+                                    <span class="text-[10px] font-black bg-blue-600 px-2 py-1 rounded text-white">WP ${i+1}</span>
+                                    <span class="text-[10px] font-mono font-bold text-slate-400 text-white">${wp[0].toFixed(4)} , ${wp[1].toFixed(4)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('detail-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeModal() {
+            document.getElementById('detail-modal').classList.add('hidden');
+        }
+
+        function showNotif(text) { const n = document.getElementById('notification'); const nt = document.getElementById('notif-text'); if (n && nt) { nt.innerText = text; n.classList.remove('hidden'); setTimeout(() => n.classList.add('hidden'), 3000); } }
+
+        window.onload = () => { lucide.createIcons(); switchTab('home'); };
+    </script>
+</body>
+</html>
+
